@@ -1,0 +1,20 @@
+{
+  "name": "stream-credit-zk-circuit",
+  "version": "1.0.0",
+  "description": "Zero-Knowledge Circuit for Credit Verification with Fraud Detection",
+  "scripts": {
+    "compile": "circom creditCheck.circom --r1cs --wasm --sym -o build",
+    "setup": "snarkjs groth16 setup build/creditCheck.r1cs powersOfTau28_hez_final_12.ptau build/creditCheck_0000.zkey",
+    "contribute": "snarkjs zkey contribute build/creditCheck_0000.zkey build/creditCheck_final.zkey --name='First contribution'",
+    "export-vkey": "snarkjs zkey export verificationkey build/creditCheck_final.zkey build/verification_key.json",
+    "export-verifier": "snarkjs zkey export solidityverifier build/creditCheck_final.zkey ../contracts/contracts/Verifier.sol",
+    "generate-proof": "node generateProof.js",
+    "verify-proof": "snarkjs groth16 verify build/verification_key.json build/public.json build/proof.json"
+  },
+  "devDependencies": {
+    "snarkjs": "^0.7.3"
+  },
+  "dependencies": {
+    "circomlib": "^0.0.6"
+  }
+}

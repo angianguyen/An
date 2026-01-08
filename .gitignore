@@ -1,0 +1,60 @@
+# .gitignore - StreamCredit Project
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Build outputs
+build/
+dist/
+.next/
+out/
+
+# Hardhat
+cache/
+artifacts/
+typechain-types/
+
+# Circom
+*.r1cs
+*.wasm
+*.sym
+*.zkey
+*.ptau
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Deployment artifacts (optional - có thể commit)
+# deployed-addresses.json
+
+# Private keys (NEVER commit)
+*.key
+*.pem
+
+# Testing
+coverage/
+.coverage
+
+# Misc
+*.bak
+*.tmp
