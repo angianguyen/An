@@ -1,8 +1,8 @@
 // Contract addresses (MockVerifier - FOR TESTING ONLY!)
 export const CONTRACTS = {
-  streamCredit: '0x3924Cc58B31fB71fa3bed2B95D855130F1407513',
-  mockUSDC: '0x4D6bB02E9E1Df85c8b6Ac5C6F2A793AEBAD5a23C',
-  groth16Verifier: '0x39344292FF61f06dd930f7b2e55fEE520fc496F3'  // MockVerifier - always returns true
+  streamCredit: '0xd619f5966320A8AF52598ffab33Df1865A23445A',
+  mockUSDC: '0xE4272b80b135d20D3523735aFB86c0541b3cD9Ec',
+  groth16Verifier: '0xf193788c8819BE7B805EFd0C7AcBda177D85Cb63'  // MockVerifier - always returns true
 }
 
 // Mock API endpoint

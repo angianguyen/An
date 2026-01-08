@@ -110,7 +110,11 @@ export const STREAM_CREDIT_ABI = [
       {"internalType": "uint256", "name": "_commitmentFee", "type": "uint256"},
       {"internalType": "uint256", "name": "_term", "type": "uint256"},
       {"internalType": "uint256", "name": "_interestRate", "type": "uint256"},
-      {"internalType": "bool", "name": "_isEarly", "type": "bool"}
+      {"internalType": "bool", "name": "_isEarly", "type": "bool"},
+      {"internalType": "uint256", "name": "_lastFullRepayment", "type": "uint256"},
+      {"internalType": "bool", "name": "_canBorrow", "type": "bool"},
+      {"internalType": "uint256", "name": "_creditLimitExpiration", "type": "uint256"},
+      {"internalType": "uint256", "name": "_daysUntilExpiration", "type": "uint256"}
     ],
     "stateMutability": "view",
     "type": "function"

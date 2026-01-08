@@ -8,14 +8,15 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { STREAM_CREDIT_ABI } from '../config/abi';
+import { createLoan, updateLoan } from '../hooks/useLoanHistory';
 
 // Contract addresses from deployed-addresses-mock.json (MockVerifier - for testing)
 // For production with real ZK proofs, use deployed-addresses.json with Groth16Verifier
 const CONTRACTS = {
   // MockVerifier deployment (for demo - always accepts proofs)
-  streamCredit: '0x3924Cc58B31fB71fa3bed2B95D855130F1407513',
-  mockUSDC: '0x4D6bB02E9E1Df85c8b6Ac5C6F2A793AEBAD5a23C',
-  mockVerifier: '0x39344292FF61f06dd930f7b2e55fEE520fc496F3',
+  streamCredit: '0x04e2AfF2287Ba41662778bE0F3C4dD61071C8555',
+  mockUSDC: '0x734CDc0eAC76Fc8EDE45BDFFc2198Ab8da25FFb8',
+  mockVerifier:  '0x8EfE05b24e552Ea27a7641a21633D116343b89AE',
   
   // Real Verifier deployment (requires real ZK proofs)
   // streamCredit: '0x2F90F76F1D3fCD66c92Ab00DCDa1e7C5A61200b9',
@@ -217,7 +218,11 @@ export function Web3Provider({ children }) {
         commitmentFee: ethers.formatUnits(info._commitmentFee, 6),
         term: Number(info._term),
         interestRate: Number(info._interestRate) / 100, // Convert basis points to percentage
-        isEarlyRepayment: info._isEarly
+        isEarlyRepayment: info._isEarly,
+        lastFullRepayment: Number(info._lastFullRepayment),
+        canBorrow: info._canBorrow,
+        creditLimitExpiration: Number(info._creditLimitExpiration),
+        daysUntilExpiration: Number(info._daysUntilExpiration)
       };
     } catch (err) {
       console.error('Failed to get account info:', err);
@@ -296,6 +301,19 @@ export function Web3Provider({ children }) {
     }
   }, [streamCreditContract]);
 
+  // Get interest rate for a given term
+  const getInterestRate = useCallback(async (termDays) => {
+    if (!streamCreditContract) return 0;
+
+    try {
+      const rate = await streamCreditContract.getInterestRate(termDays);
+      return Number(rate) / 100; // Convert basis points to percentage
+    } catch (err) {
+      console.error('Failed to get interest rate:', err);
+      return 0;
+    }
+  }, [streamCreditContract]);
+
   // Borrow from contract with term
   const borrow = useCallback(async (amount, termDays) => {
     if (!streamCreditContract || !signer) {
@@ -312,6 +330,27 @@ export function Web3Provider({ children }) {
       const receipt = await tx.wait();
       console.log('Borrow confirmed:', receipt);
       
+      // Save to MongoDB
+      try {
+        const accountInfo = await getAccountInfo();
+        const interestRate = await getInterestRate(termDays);
+        
+        await createLoan({
+          walletAddress: account,
+          principal: parseFloat(amount),
+          termDays: termDays,
+          interestRate: interestRate,
+          borrowTxHash: tx.hash,
+          creditLimitAtBorrow: accountInfo ? parseFloat(accountInfo.creditLimit) : 0,
+          network: 'sepolia'
+        });
+        
+        console.log('✅ Loan saved to database');
+      } catch (dbErr) {
+        console.error('⚠️ Failed to save loan to database:', dbErr);
+        // Don't throw - transaction already succeeded
+      }
+      
       return {
         success: true,
         txHash: tx.hash,
@@ -321,7 +360,7 @@ export function Web3Provider({ children }) {
       console.error('Failed to borrow:', err);
       throw err;
     }
-  }, [streamCreditContract, signer]);
+  }, [streamCreditContract, signer, account, getAccountInfo, getInterestRate]);
 
   // Repay to contract (supports both partial and full repayment)
   const repay = useCallback(async (amount = 0) => {
@@ -338,18 +377,11 @@ export function Web3Provider({ children }) {
       const interest = parseFloat(accountInfo.interest);
       const totalDebt = principal + interest;
       
-      // If amount = 0, repay full amount
-      const repayAmount = amount === 0 ? totalDebt : amount;
-      
       console.log('Total debt:', totalDebt.toFixed(6), 'USDC');
-      console.log('Repay amount:', repayAmount.toFixed(6), 'USDC');
+      console.log('Requested repay amount:', amount === 0 ? 'FULL' : amount.toFixed(6), 'USDC');
       
       if (totalDebt === 0) {
         throw new Error('No active loan to repay');
-      }
-      
-      if (repayAmount > totalDebt) {
-        throw new Error(`Repay amount (${repayAmount}) exceeds total debt (${totalDebt})`);
       }
       
       // Setup USDC contract
@@ -368,45 +400,73 @@ export function Web3Provider({ children }) {
       const balanceUSDC = parseFloat(ethers.formatUnits(balance, 6));
       console.log('Current USDC balance:', balanceUSDC);
       
-      const repayAmountInUSDC = ethers.parseUnits(repayAmount.toFixed(6), 6);
-      
-      // Auto-mint USDC if not enough
-      if (balance < repayAmountInUSDC) {
-        const needed = repayAmount - balanceUSDC + 100; // +100 for buffer
-        console.log('Insufficient USDC. Minting', needed.toFixed(2), 'USDC...');
+      // Auto-mint USDC with buffer to avoid rounding/approval issues
+      const requiredBalance = totalDebt + 50; // +50 USDC buffer
+      if (balanceUSDC < requiredBalance) {
+        const needed = requiredBalance - balanceUSDC;
+        console.log('Minting', needed.toFixed(2), 'USDC for buffer...');
         
         try {
           const mintTx = await usdcContract.faucet(ethers.parseUnits(needed.toFixed(6), 6));
           await mintTx.wait();
-          console.log('USDC minted successfully');
+          console.log('✅ USDC minted successfully. New balance:', (balanceUSDC + needed).toFixed(2), 'USDC');
         } catch (mintErr) {
           console.error('Failed to mint USDC:', mintErr);
-          throw new Error(`Insufficient USDC. Need ${repayAmount.toFixed(2)} USDC but have ${balanceUSDC.toFixed(2)} USDC. Please get test USDC from faucet.`);
+          throw new Error(`Insufficient USDC. Need ~${totalDebt.toFixed(2)} USDC but have ${balanceUSDC.toFixed(2)} USDC. Please get test USDC from faucet.`);
         }
       }
       
-      // Approve USDC spending (approve max to avoid multiple approvals)
+      // Approve unlimited USDC to avoid precision issues
       console.log('Approving unlimited USDC...');
-      const maxApproval = ethers.MaxUint256;
-      const approveTx = await usdcContract.approve(CONTRACTS.streamCredit, maxApproval);
+      const maxUint256 = ethers.MaxUint256;
+      const approveTx = await usdcContract.approve(CONTRACTS.streamCredit, maxUint256);
       console.log('Approve tx submitted:', approveTx.hash);
       await approveTx.wait();
-      console.log('USDC approved (unlimited)');
+      console.log('USDC approved');
       
-      // Now repay (with manual gas limit to avoid estimateGas before approval is mined)
-      console.log('Repaying loan...');
-      const tx = await streamCreditContract.repay(repayAmountInUSDC, { gasLimit: 300000 });
+      // CRITICAL FIX: Always call repay(0) for full repayment to avoid rounding errors
+      // Contract will calculate exact totalDebt and reset borrowed to 0
+      const repayAmountParam = amount === 0 ? 0 : ethers.parseUnits(amount.toFixed(6), 6);
+      
+      console.log('Repaying loan with amount:', amount === 0 ? '0 (FULL REPAYMENT)' : amount.toFixed(6));
+      const tx = await streamCreditContract.repay(repayAmountParam, { gasLimit: 300000 });
       console.log('Repay tx submitted:', tx.hash);
       
       const receipt = await tx.wait();
       console.log('Repay confirmed:', receipt);
       
+      // Update loan in MongoDB
+      try {
+        // Find the most recent active loan for this wallet
+        const response = await fetch(`/api/loans?walletAddress=${account}&status=active&limit=1`);
+        if (response.ok) {
+          const { data } = await response.json();
+          if (data && data.length > 0) {
+            const activeLoan = data[0];
+            
+            await updateLoan(activeLoan.loanId, {
+              repayTxHash: tx.hash,
+              interestPaid: parseFloat(interest),
+              principalPaid: parseFloat(principal),
+              totalRepaid: amount === 0 ? totalDebt : amount,
+              earlyRepaymentBonus: accountInfo.isEarlyRepayment,
+              status: amount === 0 ? 'repaid' : 'partial'
+            });
+            
+            console.log('✅ Loan updated in database');
+          }
+        }
+      } catch (dbErr) {
+        console.error('⚠️ Failed to update loan in database:', dbErr);
+        // Don't throw - transaction already succeeded
+      }
+      
       return {
         success: true,
         txHash: tx.hash,
         receipt,
-        amount: repayAmount,
-        isFull: amount === 0 || repayAmount >= totalDebt
+        amount: amount === 0 ? totalDebt : amount,
+        isFull: amount === 0
       };
     } catch (err) {
       console.error('Failed to repay:', err);
@@ -421,11 +481,15 @@ export function Web3Provider({ children }) {
     }
 
     try {
+      console.log('🔍 Contract addresses:');
+      console.log('  StreamCredit:', CONTRACTS.streamCredit);
+      console.log('  MockUSDC:', CONTRACTS.mockUSDC);
+      
       const accountInfo = await getAccountInfo();
       if (!accountInfo) throw new Error('Failed to get account info');
       
       const fee = parseFloat(accountInfo.commitmentFee);
-      console.log('Commitment fee to pay:', fee);
+      console.log('💰 Commitment fee to pay:', fee, 'USDC');
       
       if (fee === 0 || isNaN(fee)) {
         throw new Error('No commitment fee to pay (0 USDC)');
@@ -437,6 +501,7 @@ export function Web3Provider({ children }) {
         [
           'function approve(address spender, uint256 amount) returns (bool)',
           'function balanceOf(address account) view returns (uint256)',
+          'function allowance(address owner, address spender) view returns (uint256)',
           'function faucet(uint256 amount) external'
         ],
         signer
@@ -448,32 +513,40 @@ export function Web3Provider({ children }) {
       
       const feeInUSDC = ethers.parseUnits(fee.toFixed(6), 6);
       
-      // Auto-mint USDC if not enough
-      if (balance < feeInUSDC) {
-        const needed = fee - balanceUSDC + 100; // +100 for buffer
-        console.log('Insufficient USDC. Minting', needed.toFixed(2), 'USDC...');
+      // Auto-mint USDC with buffer to avoid rounding/approval issues
+      const requiredBalance = fee + 50; // +50 USDC buffer
+      if (balanceUSDC < requiredBalance) {
+        const needed = requiredBalance - balanceUSDC;
+        console.log('Minting', needed.toFixed(2), 'USDC for buffer...');
         
         try {
           const mintTx = await usdcContract.faucet(ethers.parseUnits(needed.toFixed(6), 6));
           await mintTx.wait();
-          console.log('USDC minted successfully');
+          console.log('✅ USDC minted successfully. New balance:', (balanceUSDC + needed).toFixed(2), 'USDC');
         } catch (mintErr) {
           console.error('Failed to mint USDC:', mintErr);
           throw new Error(`Insufficient USDC balance. Need ${fee.toFixed(6)} USDC but have ${balanceUSDC.toFixed(6)} USDC`);
         }
       }
       
-      // Approve USDC spending (approve max to avoid multiple approvals)
+      // Approve unlimited USDC to avoid precision issues (same as repay)
       console.log('Approving unlimited USDC...');
-      const maxApproval = ethers.MaxUint256;
-      const approveTx = await usdcContract.approve(CONTRACTS.streamCredit, maxApproval);
+      const maxUint256 = ethers.MaxUint256;
+      const approveTx = await usdcContract.approve(CONTRACTS.streamCredit, maxUint256, { gasLimit: 100000 });
       console.log('Approve tx submitted:', approveTx.hash);
-      await approveTx.wait();
-      console.log('USDC approved (unlimited)');
+      const approveReceipt = await approveTx.wait();
+      console.log('✅ Approve confirmed in block:', approveReceipt.blockNumber);
       
-      // Pay fee (with manual gas limit to avoid estimateGas before approval is mined)
+      // Verify allowance after approval
+      const allowance = await usdcContract.allowance(account, CONTRACTS.streamCredit);
+      console.log('Current allowance:', ethers.formatUnits(allowance, 6), 'USDC');
+      
+      // Wait a bit to ensure blockchain state is updated
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Pay fee (with manual gas limit)
       console.log('Paying commitment fee...');
-      const tx = await streamCreditContract.payCommitmentFee({ gasLimit: 200000 });
+      const tx = await streamCreditContract.payCommitmentFee({ gasLimit: 250000 });
       console.log('Payment tx submitted:', tx.hash);
       
       const receipt = await tx.wait();
@@ -490,19 +563,6 @@ export function Web3Provider({ children }) {
       throw err;
     }
   }, [streamCreditContract, signer, getAccountInfo, account]);
-
-  // Get interest rate for a given term
-  const getInterestRate = useCallback(async (termDays) => {
-    if (!streamCreditContract) return 0;
-
-    try {
-      const rate = await streamCreditContract.getInterestRate(termDays);
-      return Number(rate) / 100; // Convert basis points to percentage
-    } catch (err) {
-      console.error('Failed to get interest rate:', err);
-      return 0;
-    }
-  }, [streamCreditContract]);
 
   const value = {
     // State

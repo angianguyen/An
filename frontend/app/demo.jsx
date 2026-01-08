@@ -974,9 +974,9 @@ const ConsoleView = ({ onNavigate, web3 }) => {
                     ? 'bg-gradient-to-r from-rose-500/10 to-orange-500/5 border-rose-500/30'
                     : 'bg-gradient-to-r from-amber-500/10 to-yellow-500/5 border-amber-500/30'
                 }`}>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-center items-center">
                     <div>
-                      <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Credit Decision</div>
+                      <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1 text-center">Credit Decision</div>
                       <div className={`text-xl font-bold flex items-center gap-2 ${
                         scenarioData.decision === 'APPROVED' ? 'text-emerald-400' :
                         scenarioData.decision === 'REJECTED' ? 'text-rose-400' : 'text-amber-400'
@@ -984,12 +984,6 @@ const ConsoleView = ({ onNavigate, web3 }) => {
                         {scenarioData.decision === 'APPROVED' && <CheckCircle2 size={20} />}
                         {scenarioData.decision === 'REJECTED' && <AlertTriangle size={20} />}
                         {scenarioData.decision}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Credit Limit</div>
-                      <div className="text-2xl font-bold font-mono text-white">
-                        ${scenarioData.creditLimit?.toLocaleString() || '0'}
                       </div>
                     </div>
                   </div>

@@ -31,6 +31,9 @@ contract StreamCredit is Ownable, ReentrancyGuard {
     // Credit limit cho mỗi borrower
     mapping(address => uint256) public creditLimit;
     
+    // Thời hạn cuối của credit limit (1 năm từ khi verify ZK proof)
+    mapping(address => uint256) public creditLimitExpiration;
+    
     // Số tiền đã vay
     mapping(address => uint256) public borrowed;
     
@@ -43,6 +46,12 @@ contract StreamCredit is Ownable, ReentrancyGuard {
     // Commitment fee đã trả lần cuối
     mapping(address => uint256) public lastCommitmentFeePayment;
     
+    // Commitment fee deposit (trích từ số tiền vay, sẽ hoàn lại khi repay)
+    mapping(address => uint256) public commitmentFeeDeposit;
+    
+    // Last full repayment timestamp (để enforce cooldown period)
+    mapping(address => uint256) public lastFullRepayment;
+    
     // Reverse Interest Curve: Lãi suất theo kỳ hạn
     uint256 public constant SHORT_TERM_RATE = 500; // 5% APR (7-30 days)
     uint256 public constant MEDIUM_TERM_RATE = 800; // 8% APR (31-90 days)
@@ -54,6 +63,12 @@ contract StreamCredit is Ownable, ReentrancyGuard {
     
     // Early Repayment Bonus
     uint256 public constant EARLY_REPAY_BONUS = 200; // 2% discount
+    
+    // Cooldown period sau khi trả hết nợ (5 ngày)
+    uint256 public constant COOLDOWN_PERIOD = 5 days;
+    
+    // Credit limit validity period (1 năm)
+    uint256 public constant CREDIT_LIMIT_VALIDITY = 365 days;
     
     // Tỷ lệ credit limit trên revenue (30%)
     uint256 public constant CREDIT_RATIO = 30;
@@ -99,8 +114,9 @@ contract StreamCredit is Ownable, ReentrancyGuard {
         // Calculate credit limit = 30% of revenue
         uint256 newCreditLimit = (revenue * CREDIT_RATIO) / 100;
         
-        // Update credit limit
+        // Update credit limit and set expiration to 1 year from now
         creditLimit[msg.sender] = newCreditLimit;
+        creditLimitExpiration[msg.sender] = block.timestamp + CREDIT_LIMIT_VALIDITY;
         lastCommitmentFeePayment[msg.sender] = block.timestamp;
         
         emit CreditVerified(msg.sender, newCreditLimit, block.timestamp);
@@ -124,17 +140,36 @@ contract StreamCredit is Ownable, ReentrancyGuard {
     }
     
     /**
-     * @notice Tính commitment fee phải trả
+     * @notice Tính commitment fee đang tích luỹ (accumulated fee)
+     * @dev Fee is calculated on available credit (creditLimit - borrowed) from lastCommitmentFeePayment to now
      * @param account: Địa chỉ người vay
-     * @return Số tiền commitment fee
+     * @return Số tiền commitment fee đang tích luỹ
      */
     function calculateCommitmentFee(address account) public view returns (uint256) {
         if (creditLimit[account] == 0) return 0;
+        if (lastCommitmentFeePayment[account] == 0) return 0;
         
-        uint256 timeSinceLastPayment = block.timestamp - lastCommitmentFeePayment[account];
-        uint256 annualFee = (creditLimit[account] * COMMITMENT_FEE_RATE) / BASIS_POINTS;
-        uint256 fee = (annualFee * timeSinceLastPayment) / SECONDS_PER_YEAR;
+        uint256 availableCredit = creditLimit[account] > borrowed[account] 
+            ? creditLimit[account] - borrowed[account] 
+            : 0;
         
+        uint256 timeElapsed = block.timestamp - lastCommitmentFeePayment[account];
+        uint256 annualFee = (availableCredit * COMMITMENT_FEE_RATE) / BASIS_POINTS;
+        uint256 fee = (annualFee * timeElapsed) / SECONDS_PER_YEAR;
+        
+        return fee;
+    }
+    
+    /**
+     * @notice Tính commitment fee cho kỳ hạn vay (prepaid)
+     * @dev Fee is calculated on available credit (creditLimit - borrowed), not on borrowed amount
+     * @param availableCredit: Credit limit minus borrowed amount (what remains available)
+     * @param termDays: Kỳ hạn vay (ngày)
+     * @return Số tiền commitment fee cần trích
+     */
+    function calculatePrepaidCommitmentFee(uint256 availableCredit, uint256 termDays) public pure returns (uint256) {
+        uint256 annualFee = (availableCredit * COMMITMENT_FEE_RATE) / BASIS_POINTS;
+        uint256 fee = (annualFee * termDays) / 365;
         return fee;
     }
     
@@ -178,11 +213,37 @@ contract StreamCredit is Ownable, ReentrancyGuard {
         require(termDays >= 7 && termDays <= 365, "Invalid term");
         require(borrowed[msg.sender] == 0, "Already have active loan");
         
+        // Check cooldown period: phải duy trì total debt = 0 trong 5 ngày
+        if (lastFullRepayment[msg.sender] > 0) {
+            require(
+                block.timestamp >= lastFullRepayment[msg.sender] + COOLDOWN_PERIOD,
+                "Must wait 5 days after full repayment before borrowing again"
+            );
+        }
+        
         // Auto setup for testing if no credit limit
         if (creditLimit[msg.sender] == 0) {
             creditLimit[msg.sender] = amount * 2; // Give 2x credit limit
+            creditLimitExpiration[msg.sender] = block.timestamp + CREDIT_LIMIT_VALIDITY; // Set 1 year expiration
             lastCommitmentFeePayment[msg.sender] = block.timestamp;
         }
+        
+        // Check if credit limit is still valid
+        require(
+            block.timestamp < creditLimitExpiration[msg.sender],
+            "Credit limit expired. Please submit new ZK proof to renew."
+        );
+        
+        // Auto-adjust loan term to not exceed credit limit expiration
+        // Người dùng vẫn vay được nhưng term sẽ tự động giảm về số ngày còn lại
+        uint256 daysUntilExpiration = (creditLimitExpiration[msg.sender] - block.timestamp) / 1 days;
+        uint256 actualTerm = termDays;
+        
+        if (termDays > daysUntilExpiration) {
+            actualTerm = daysUntilExpiration;
+        }
+        
+        require(actualTerm >= 7, "Insufficient time remaining on credit limit (min 7 days required)");
         
         require(
             borrowed[msg.sender] + amount <= creditLimit[msg.sender],
@@ -194,7 +255,7 @@ contract StreamCredit is Ownable, ReentrancyGuard {
         
         // Auto mint USDC if contract doesn't have enough (for testing only)
         if (contractBalance < amount) {
-            uint256 needed = amount * 3; // Mint 3x to have buffer
+            uint256 needed = amount + 10000 * 1e6; // Mint amount + 10000 USDC buffer
             
             // Mint USDC directly to this contract
             try IFaucet(address(usdcToken)).faucet(needed) {
@@ -210,14 +271,15 @@ contract StreamCredit is Ownable, ReentrancyGuard {
         
         borrowed[msg.sender] = amount;
         borrowTimestamp[msg.sender] = block.timestamp;
-        borrowTerm[msg.sender] = termDays;
+        borrowTerm[msg.sender] = actualTerm; // Lưu actualTerm, không phải termDays ban đầu
         totalLiquidity -= amount;
         
-        uint256 rate = getInterestRate(termDays);
+        uint256 rate = getInterestRate(actualTerm);
         
+        // Transfer full amount to borrower (no prepaid fee deduction)
         require(usdcToken.transfer(msg.sender, amount), "Transfer failed");
         
-        emit Borrowed(msg.sender, amount, termDays, rate);
+        emit Borrowed(msg.sender, amount, actualTerm, rate);
     }
     
     /**
@@ -254,9 +316,11 @@ contract StreamCredit is Ownable, ReentrancyGuard {
             // Full repayment
             interestPaid = interest;
             principalPaid = principal;
+            
             borrowed[msg.sender] = 0;
             borrowTimestamp[msg.sender] = 0;
             borrowTerm[msg.sender] = 0;
+            lastFullRepayment[msg.sender] = block.timestamp; // Track full repayment time
         } else {
             // Partial repayment: pay interest first
             if (repayAmount <= interest) {
@@ -302,27 +366,29 @@ contract StreamCredit is Ownable, ReentrancyGuard {
         borrowed[msg.sender] = 0;
         borrowTimestamp[msg.sender] = 0;
         borrowTerm[msg.sender] = 0;
+        lastFullRepayment[msg.sender] = block.timestamp; // Track full repayment time
         totalLiquidity += totalAmount;
         
         emit Repaid(msg.sender, principal, interest, isEarly);
     }
     
     /**
-     * @notice Trả commitment fee
+     * @notice Trả commitment fee tích luỹ
+     * @dev Fee accumulates on available credit from lastCommitmentFeePayment to now
      */
     function payCommitmentFee() external nonReentrant {
         uint256 fee = calculateCommitmentFee(msg.sender);
-        require(fee > 0, "No fee to pay");
+        require(fee > 0, "No commitment fee to pay");
         
         require(usdcToken.balanceOf(msg.sender) >= fee, "Insufficient USDC balance");
         require(usdcToken.allowance(msg.sender, address(this)) >= fee, "Insufficient USDC allowance");
         
-        require(
-            usdcToken.transferFrom(msg.sender, address(this), fee),
-            "Transfer failed"
-        );
+        // Transfer USDC from user to contract
+        require(usdcToken.transferFrom(msg.sender, address(this), fee), "Transfer failed");
         
+        // Reset lastCommitmentFeePayment to now
         lastCommitmentFeePayment[msg.sender] = block.timestamp;
+        
         totalLiquidity += fee;
         
         emit CommitmentFeePaid(msg.sender, fee);
@@ -377,7 +443,11 @@ contract StreamCredit is Ownable, ReentrancyGuard {
             uint256 _commitmentFee,
             uint256 _term,
             uint256 _interestRate,
-            bool _isEarly
+            bool _isEarly,
+            uint256 _lastFullRepayment,
+            bool _canBorrow,
+            uint256 _creditLimitExpiration,
+            uint256 _daysUntilExpiration
         ) 
     {
         _creditLimit = creditLimit[account];
@@ -388,6 +458,62 @@ contract StreamCredit is Ownable, ReentrancyGuard {
         _term = borrowTerm[account];
         _interestRate = borrowTerm[account] > 0 ? getInterestRate(borrowTerm[account]) : 0;
         _isEarly = isEarlyRepayment(account);
+        _lastFullRepayment = lastFullRepayment[account];
+        _creditLimitExpiration = creditLimitExpiration[account];
+        
+        // Calculate days until credit limit expiration
+        if (_creditLimitExpiration > block.timestamp) {
+            _daysUntilExpiration = (_creditLimitExpiration - block.timestamp) / 1 days;
+        } else {
+            _daysUntilExpiration = 0;
+        }
+        
+        // Check if can borrow (no active loan + cooldown passed + credit limit valid OR not set yet)
+        _canBorrow = (_borrowed == 0) && 
+                     (_lastFullRepayment == 0 || block.timestamp >= _lastFullRepayment + COOLDOWN_PERIOD) &&
+                     (_creditLimit == 0 || _creditLimitExpiration > block.timestamp);
+    }
+    
+    /**
+     * @notice Tính actual loan term sẽ được approve (có thể khác requested term nếu credit limit sắp hết hạn)
+     * @param account: Địa chỉ người vay
+     * @param requestedTerm: Kỳ hạn mong muốn (ngày)
+     * @return Kỳ hạn thực tế sẽ được approve
+     */
+    function getActualLoanTerm(address account, uint256 requestedTerm) public view returns (uint256) {
+        if (creditLimitExpiration[account] == 0 || block.timestamp >= creditLimitExpiration[account]) {
+            return 0; // Credit limit expired or not set
+        }
+        
+        uint256 daysUntilExpiration = (creditLimitExpiration[account] - block.timestamp) / 1 days;
+        
+        if (requestedTerm > daysUntilExpiration) {
+            return daysUntilExpiration;
+        }
+        
+        return requestedTerm;
+    }
+    
+    /**
+     * @notice Helper function to convert uint to string
+     */
+    function uintToString(uint256 value) internal pure returns (string memory) {
+        if (value == 0) {
+            return "0";
+        }
+        uint256 temp = value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        return string(buffer);
     }
     
     /**
