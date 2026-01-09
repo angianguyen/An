@@ -6,8 +6,10 @@ export const CONTRACTS = {
   collateralNFT: '0xae4857b09B590905A8eFc4AaDa4b169ACe335701'  // Collateral NFT for asset tokenization
 }
 
-// Mock API endpoint
-export const API_BASE_URL = 'http://localhost:3001'
+// Mock API endpoint - Use environment variable or fallback to localhost for dev
+// This is for demo features (Benford analysis, ZK proof generation)
+// Different from internal Next.js API routes (/api/loans, /api/collaterals)
+export const API_BASE_URL = process.env.NEXT_PUBLIC_MOCK_API_URL || 'http://localhost:3001'
 
 // API Endpoints
 export const API_ENDPOINTS = {

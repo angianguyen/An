@@ -467,7 +467,7 @@ const TeamView = () => {
 };
 
 // --- PAGE 3: CONSOLE APP VIEW ---
-const API_BASE = 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_MOCK_API_URL || 'http://localhost:3001';
 
 const ConsoleView = ({ onNavigate, web3 }) => {
   const { 
