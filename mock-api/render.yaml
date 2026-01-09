@@ -4,9 +4,8 @@ services:
     env: node
     region: singapore
     plan: free
-    rootDir: mock-api
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: cd mock-api && npm install
+    startCommand: cd mock-api && npm start
     envVars:
       - key: NODE_ENV
         value: production
