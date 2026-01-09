@@ -279,6 +279,17 @@ export function Web3Provider({ children }) {
       console.log('input:', input);
       console.log('revenue:', revenueInUSDC.toString());
 
+      // Try calling static first to catch revert reason
+      try {
+        await streamCreditContract.verifyAndUpdateCredit.staticCall(
+          a, b, c, input, revenueInUSDC
+        );
+        console.log('✅ Static call succeeded - transaction should work');
+      } catch (staticError) {
+        console.error('❌ Static call failed:', staticError);
+        throw new Error(`Contract will revert: ${staticError.message}`);
+      }
+
       const tx = await streamCreditContract.verifyAndUpdateCredit(
         a, b, c, input, revenueInUSDC
       );
