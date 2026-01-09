@@ -616,7 +616,7 @@ const ConsoleView = ({ onNavigate, web3 }) => {
         body: JSON.stringify({
           amounts,
           revenueThreshold: 10000,
-          benfordThreshold: 20
+          benfordThreshold: 50
         })
       });
       
