@@ -5,7 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = 3001;
 
 app.use(cors());
 app.use(express.json());
@@ -647,7 +647,7 @@ app.post('/api/wallet/update-credit', (req, res) => {
 
 // Generate ZK proof
 app.post('/api/zk/generate-proof', async (req, res) => {
-  const { amounts, transactions, revenueThreshold = 10000, benfordThreshold = 50 } = req.body;
+  const { amounts, transactions, revenueThreshold = 10000, benfordThreshold = 50 req.body;
   
   const amountList = amounts || (transactions && transactions.map(t => t.amount)) || [];
 
@@ -690,7 +690,7 @@ app.post('/api/zk/generate-proof', async (req, res) => {
     .digest('hex');
 
   const mockProof = {
-    pi_a: [`0x${proofHash.slice(0, 64)}`, `0x${proofHash.slice(32, 64)}0000000000000000`],
+    pi_a: [`0x${proofHash.slice(0, 64)}`, `0x${proofHash.slice(32)}0000`],
     pi_b: [
       [`0x${crypto.randomBytes(32).toString('hex')}`, `0x${crypto.randomBytes(32).toString('hex')}`],
       [`0x${crypto.randomBytes(32).toString('hex')}`, `0x${crypto.randomBytes(32).toString('hex')}`]
