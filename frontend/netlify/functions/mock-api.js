@@ -67,8 +67,15 @@ exports.handler = async (event) => {
   }
 
   try {
-    const path = event.path.replace('/.netlify/functions/mock-api', '');
+    // Extract path after /.netlify/functions/mock-api
+    let path = event.path.replace('/.netlify/functions/mock-api', '');
+    // If path doesn't start with /api, it means we're getting it from redirect
+    if (!path.startsWith('/api')) {
+      path = '/api' + path;
+    }
     const method = event.httpMethod;
+
+    console.log('Netlify Function called:', { path, method });
 
     // POST /api/zk/generate-proof
     if (method === 'POST' && path === '/api/zk/generate-proof') {
