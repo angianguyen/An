@@ -1,0 +1,38 @@
+services:
+  # Backend API - Web Service
+  - type: web
+    name: fese-api
+    env: node
+    region: oregon
+    rootDir: mock-api
+    buildCommand: yarn install
+    startCommand: yarn start
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+  # Frontend - Static Site
+  - type: web
+    name: fese-frontend
+    env: static
+    region: oregon
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: .next
+    envVars:
+      - key: NEXT_PUBLIC_MOCK_API_URL
+        value: https://fese-5.onrender.com
+      - key: NEXT_PUBLIC_STREAM_CREDIT_ADDRESS
+        value: 0xD56e705D58F597B448610c17Da11598539917910
+      - key: NEXT_PUBLIC_MOCK_VERIFIER_ADDRESS
+        value: 0x1E2905cCc01D83DF8074BdBa8a8bf839B69e6fE3
+      - key: NEXT_PUBLIC_COLLATERAL_NFT_ADDRESS
+        value: 0xae4857b09B590905A8eFc4AaDa4b169ACe335701
+      - key: NEXT_PUBLIC_MOCK_USDC_ADDRESS
+        value: 0xF2349DF62365B214b5a8BD654D9CD8f47fe26009
+      - key: NEXT_PUBLIC_THIRDWEB_CLIENT_ID
+        value: 92f14403e88a8dec5c0662056f2d63a2
+      - key: THIRDWEB_SECRET_KEY
+        value: u3E5CXfK7bzH14mkA1uUbXwifV5dYd-Gc8o4AAKI3TkeSR281Bx8OZwQMZKCZs_o066c0cqhCZcGO7whyv-6FA
+      - key: MONGODB_URI
+        value: mongodb+srv://angianguyen210805:binhan99@zk.vunqv4j.mongodb.net/streamcredit?retryWrites=true&w=majority&appName=ZK
