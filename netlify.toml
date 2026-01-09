@@ -13,6 +13,22 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# Redirect mock API calls to Netlify Functions
+[[redirects]]
+  from = "/api/zk/*"
+  to = "/.netlify/functions/mock-api/api/zk/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/analyze/*"
+  to = "/.netlify/functions/mock-api/api/analyze/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/credit/demo/*"
+  to = "/.netlify/functions/mock-api/api/credit/demo/:splat"
+  status = 200
+
 # Headers for security and mobile compatibility
 [[headers]]
   for = "/*"
