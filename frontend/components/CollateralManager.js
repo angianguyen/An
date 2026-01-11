@@ -7,32 +7,40 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useWeb3 } from '../context/Web3Context';
 import { calculateFileHash, uploadToIPFS, getIPFSGatewayURL, verifyFileIntegrity } from '../utils/ipfsUpload';
 import { createCollateral, useCollateralHistory } from '../hooks/useCollateralHistory';
 import { CONTRACTS } from '../config/constants';
-
-// Asset types matching smart contract enum
-const ASSET_TYPES = [
-  { value: 0, label: 'Máy móc thiết bị', icon: '⚙️', color: 'from-blue-500 to-cyan-500' },
-  { value: 1, label: 'Hàng tồn kho', icon: '📦', color: 'from-purple-500 to-pink-500' },
-  { value: 2, label: 'Bất động sản', icon: '🏢', color: 'from-green-500 to-emerald-500' },
-  { value: 3, label: 'Phương tiện', icon: '🚗', color: 'from-yellow-500 to-orange-500' },
-  { value: 4, label: 'Hóa đơn', icon: '📄', color: 'from-indigo-500 to-blue-500' },
-  { value: 5, label: 'Khoản phải thu', icon: '💰', color: 'from-cyan-500 to-teal-500' },
-  { value: 6, label: 'Khác', icon: '📋', color: 'from-gray-500 to-slate-500' }
-];
-
-// Workflow steps
-const STEPS = [
-  { id: 1, label: 'Chọn dữ liệu', icon: '📁', key: 'upload' },
-  { id: 2, label: 'Tạo Hash', icon: '🔐', key: 'hash' },
-  { id: 3, label: 'IPFS Upload', icon: '☁️', key: 'ipfs' },
-  { id: 4, label: 'On-Chain', icon: '⚡', key: 'mint' }
-];
+import KYCUpload from './KYCUploadSimple';
 
 export default function CollateralManager() {
+  const { t } = useTranslation();
   const { account, mintCollateral, collateralNFT } = useWeb3();
+  
+  // KYC state
+  const [showKYC, setShowKYC] = useState(false);
+  const [kycVerified, setKycVerified] = useState(false);
+  const [isCheckingKYC, setIsCheckingKYC] = useState(true);
+  
+  // Asset types matching smart contract enum
+  const ASSET_TYPES = [
+    { value: 0, label: t('collateral.assetTypes.machinery'), icon: '⚙️', color: 'from-blue-500 to-cyan-500' },
+    { value: 1, label: t('collateral.assetTypes.inventory'), icon: '📦', color: 'from-purple-500 to-pink-500' },
+    { value: 2, label: t('collateral.assetTypes.realEstate'), icon: '🏢', color: 'from-green-500 to-emerald-500' },
+    { value: 3, label: t('collateral.assetTypes.vehicle'), icon: '🚗', color: 'from-yellow-500 to-orange-500' },
+    { value: 4, label: t('collateral.assetTypes.invoice'), icon: '📄', color: 'from-indigo-500 to-blue-500' },
+    { value: 5, label: t('collateral.assetTypes.receivables'), icon: '💰', color: 'from-cyan-500 to-teal-500' },
+    { value: 6, label: t('collateral.assetTypes.other'), icon: '📋', color: 'from-gray-500 to-slate-500' }
+  ];
+
+  // Workflow steps
+  const STEPS = [
+    { id: 1, label: t('collateral.workflow.step1'), icon: '📁', key: 'upload' },
+    { id: 2, label: t('collateral.workflow.step2'), icon: '🔐', key: 'hash' },
+    { id: 3, label: t('collateral.workflow.step3'), icon: '☁️', key: 'ipfs' },
+    { id: 4, label: t('collateral.workflow.step4'), icon: '⚡', key: 'mint' }
+  ];
   
   // Form state
   const [assetName, setAssetName] = useState('');
@@ -72,13 +80,13 @@ export default function CollateralManager() {
     
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Vui lòng chọn file ảnh (JPG, PNG, etc.)');
+      alert(t('collateral.messages.selectImageFile'));
       return;
     }
     
     // Validate file size (max 10MB for free IPFS)
     if (file.size > 10 * 1024 * 1024) {
-      alert('File quá lớn! Vui lòng chọn ảnh nhỏ hơn 10MB');
+      alert(t('collateral.messages.fileTooLarge'));
       return;
     }
     
@@ -95,22 +103,22 @@ export default function CollateralManager() {
     // Calculate file hash
     try {
       setCurrentStep(2);
-      setUploadStatus('Đang tính toán hash của file...');
+      setUploadStatus(t('collateral.messages.calculatingHash'));
       const hash = await calculateFileHash(file);
       setFileHash(hash);
-      setUploadStatus('Hash tạo thành công');
+      setUploadStatus(t('collateral.messages.hashCreated'));
       
       // Check if file already tokenized
       if (collateralNFT) {
         const exists = await collateralNFT.isFileTokenized(hash);
         if (exists) {
           const tokenId = await collateralNFT.fileHashToTokenId(hash);
-          setUploadStatus(`⚠️ File đã được token hóa (Token #${tokenId.toString()})`);
+          setUploadStatus(t('collateral.messages.fileAlreadyTokenized', { tokenId: tokenId.toString() }));
         }
       }
     } catch (error) {
       console.error('Hash calculation failed:', error);
-      setUploadStatus('Lỗi: ' + error.message);
+      setUploadStatus(t('collateral.messages.error', { message: error.message }));
     }
   };
   
@@ -118,13 +126,20 @@ export default function CollateralManager() {
    * Upload to IPFS and mint NFT using Web3Context
    */
   const handleMintCollateral = async () => {
+    // Check KYC first
+    if (!kycVerified) {
+      alert(t('collateral.messages.kycRequired') || 'Bạn cần xác thực KYC trước khi mint NFT!');
+      setShowKYC(true);
+      return;
+    }
+    
     if (!selectedFile || !assetName || !estimatedValue) {
-      alert('Vui lòng điền đầy đủ thông tin!');
+      alert(t('collateral.messages.fillAllFields'));
       return;
     }
     
     if (!fileHash) {
-      alert('Đang tính hash... Vui lòng đợi');
+      alert(t('collateral.messages.calculatingHash'));
       return;
     }
     
@@ -134,7 +149,7 @@ export default function CollateralManager() {
       
       // Step 3: Upload to IPFS
       setCurrentStep(3);
-      setUploadStatus('Đang upload lên IPFS...');
+      setUploadStatus(t('collateral.messages.uploadingIPFS'));
       const metadata = {
         assetName,
         assetType,
@@ -146,14 +161,14 @@ export default function CollateralManager() {
       const ipfsResult = await uploadToIPFS(selectedFile, metadata);
       setIpfsData(ipfsResult);
       setUploadProgress(50);
-      setUploadStatus('Upload IPFS thành công!');
+      setUploadStatus(t('collateral.messages.uploadSuccess'));
       
       console.log('📦 IPFS Result:', ipfsResult);
       console.log('🔧 mintCollateral function:', mintCollateral);
       
       // Step 4: Mint NFT on blockchain via Web3Context
       setCurrentStep(4);
-      setUploadStatus('Đang mint NFT on-chain...');
+      setUploadStatus(t('collateral.messages.mintingNFT'));
       
       if (!mintCollateral) {
         throw new Error('mintCollateral function not available. Please connect wallet.');
@@ -174,6 +189,7 @@ export default function CollateralManager() {
         estimatedValue,
         description,
         ipfsResult.imageCID,
+        ipfsResult.imageURL,
         fileHash,
         ipfsResult.metadataURI,
         selectedFile.name,
@@ -184,7 +200,7 @@ export default function CollateralManager() {
       console.log('✅ Mint result:', result);
       
       setUploadProgress(100);
-      setUploadStatus(`✅ Mint thành công! Token ID: ${result.tokenId}`);
+      setUploadStatus(t('collateral.messages.mintSuccess', { tokenId: result.tokenId }));
       
       // Wait for database to sync, then refetch and reset
       setTimeout(() => {
@@ -196,7 +212,7 @@ export default function CollateralManager() {
     } catch (error) {
       console.error('❌ Mint failed:', error);
       console.error('Error stack:', error.stack);
-      setUploadStatus('❌ Lỗi: ' + error.message);
+      setUploadStatus(t('collateral.messages.error', { message: error.message }));
       setIsUploading(false); // Clear loading state on error
     } finally {
       setIsUploading(false);
@@ -255,6 +271,39 @@ export default function CollateralManager() {
     setIsLoadingNFTs(dbLoading);
   }, [dbLoading]);
   
+  // Check KYC status when wallet connects
+  useEffect(() => {
+    const checkKYCStatus = async () => {
+      if (!account) {
+        setIsCheckingKYC(false);
+        setKycVerified(false);
+        return;
+      }
+
+      try {
+        setIsCheckingKYC(true);
+        const response = await fetch(`/api/kyc/verify?walletAddress=${account}`);
+        const data = await response.json();
+        
+        setKycVerified(data.verified === true);
+        // Don't auto-show KYC modal, let user click button
+      } catch (error) {
+        console.error('KYC check error:', error);
+        setKycVerified(false);
+      } finally {
+        setIsCheckingKYC(false);
+      }
+    };
+
+    checkKYCStatus();
+  }, [account]);
+
+  const handleKYCVerified = (kycData) => {
+    setKycVerified(true);
+    setShowKYC(false);
+    alert(`KYC verified for ${kycData.full_name}! You can now mint Collateral NFTs.`);
+  };
+  
   const loadUserCollaterals = () => {
     // This function now just triggers refetch
     if (refetch) {
@@ -270,10 +319,10 @@ export default function CollateralManager() {
       const valueInUSDC = Math.floor(parseFloat(newValue) * 1e6);
       const tx = await collateralNFT.updateCollateralValue(tokenId, valueInUSDC);
       await tx.wait();
-      alert('✅ Cập nhật giá trị thành công!');
+      alert(t('collateral.messages.updateSuccess'));
       refetch(); // Use refetch instead of loadUserCollaterals
     } catch (error) {
-      alert('❌ Lỗi: ' + error.message);
+      alert(t('collateral.messages.error', { message: error.message }));
     }
   };
   
@@ -284,20 +333,32 @@ export default function CollateralManager() {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-6">
+      {/* KYC Modal */}
+      {showKYC && account && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="max-w-2xl w-full">
+            <KYCUpload 
+              walletAddress={account} 
+              onVerified={handleKYCVerified}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
-              🏦 Quản lý Tài sản Thế chấp
+              🏦 {t('collateral.title')}
             </h1>
-            <p className="text-slate-400">Token hóa tài sản → Tạo ZK Proof → Nhận Credit On-Chain</p>
+            <p className="text-slate-400">{t('collateral.subtitle')}</p>
           </div>
           {account && (
             <div className="px-4 py-2 bg-slate-800/50 border border-cyan-500/30 rounded-lg">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm text-slate-300">Connected</span>
+                <span className="text-sm text-slate-300">{t('common.connected')}</span>
               </div>
             </div>
           )}
@@ -309,6 +370,49 @@ export default function CollateralManager() {
         
         {/* Left: Upload Form */}
         <div className="lg:col-span-2 space-y-6">
+          
+          {/* KYC Status Banner */}
+          {account && (
+            <div className={`p-4 rounded-xl border ${
+              isCheckingKYC 
+                ? 'bg-slate-800/50 border-slate-600'
+                : kycVerified 
+                ? 'bg-green-500/10 border-green-500/30' 
+                : 'bg-yellow-500/10 border-yellow-500/30'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">
+                    {isCheckingKYC ? '⏳' : kycVerified ? '✅' : '⚠️'}
+                  </span>
+                  <div>
+                    <h4 className="font-semibold">
+                      {isCheckingKYC 
+                        ? 'Đang kiểm tra KYC...' 
+                        : kycVerified 
+                        ? 'KYC đã xác thực' 
+                        : 'Cần xác thực KYC'}
+                    </h4>
+                    <p className="text-sm text-slate-400">
+                      {isCheckingKYC 
+                        ? 'Vui lòng đợi...' 
+                        : kycVerified 
+                        ? 'Bạn có thể mint Collateral NFT' 
+                        : 'Bạn cần xác thực CCCD trước khi mint NFT'}
+                    </p>
+                  </div>
+                </div>
+                {!isCheckingKYC && !kycVerified && (
+                  <button
+                    onClick={() => setShowKYC(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all"
+                  >
+                    Xác thực ngay
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           
           {/* Progress Steps */}
           <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
@@ -345,19 +449,19 @@ export default function CollateralManager() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Asset Name */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Tên tài sản</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">{t('collateral.assetName')}</label>
                 <input
                   type="text"
                   value={assetName}
                   onChange={(e) => setAssetName(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all text-white placeholder-slate-500"
-                  placeholder="VD: Máy CNC XYZ-2000"
+                  placeholder={t('collateral.assetNamePlaceholder')}
                 />
               </div>
               
               {/* Asset Type */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Loại tài sản</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">{t('collateral.assetType')}</label>
                 <select
                   value={assetType}
                   onChange={(e) => setAssetType(parseInt(e.target.value))}
@@ -373,19 +477,19 @@ export default function CollateralManager() {
               
               {/* Estimated Value */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Giá trị ước tính (USDC)</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">{t('collateral.estimatedValue')}</label>
                 <input
                   type="number"
                   value={estimatedValue}
                   onChange={(e) => setEstimatedValue(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all text-white placeholder-slate-500"
-                  placeholder="VD: 50000"
+                  placeholder={t('collateral.valuePlaceholder')}
                 />
               </div>
               
               {/* File Upload */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Ảnh tài sản</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">{t('collateral.selectImage')}</label>
                 
                 {/* Custom File Button */}
                 <div className="relative">
@@ -398,23 +502,23 @@ export default function CollateralManager() {
                   />
                   <div className="w-full px-4 py-3 bg-gradient-to-r from-cyan-600/20 to-blue-600/20 border-2 border-dashed border-cyan-500/50 rounded-lg hover:border-cyan-400 transition-all text-center">
                     <span className="text-cyan-400">
-                      {selectedFile ? selectedFile.name : '📎 Click để chọn file ảnh'}
+                      {selectedFile ? selectedFile.name : `📎 ${t('collateral.selectImage')}`}
                     </span>
                   </div>
                 </div>
                 
-                <p className="text-xs text-slate-500 mt-1">Max 10MB • JPG, PNG, GIF, WebP</p>
+                <p className="text-xs text-slate-500 mt-1">{t('collateral.fileRequirements')}</p>
               </div>
               
               {/* Description - Full Width */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-300 mb-2">Mô tả</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">{t('collateral.description')}</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all text-white placeholder-slate-500"
                   rows={3}
-                  placeholder="Thông tin chi tiết về tài sản..."
+                  placeholder={t('collateral.descriptionPlaceholder')}
                 />
               </div>
             </div>
@@ -453,26 +557,37 @@ export default function CollateralManager() {
 
             {/* Action Buttons */}
             <div className="mt-6 flex gap-4">
-              <button
-                onClick={handleMintCollateral}
-                disabled={!selectedFile || isUploading || !account}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:from-slate-700 disabled:to-slate-600 disabled:cursor-not-allowed rounded-lg font-semibold shadow-lg hover:shadow-cyan-500/50 transition-all transform hover:scale-105 disabled:transform-none"
-              >
-                {isUploading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Đang xử lý...
-                  </span>
-                ) : (
-                  '🚀 Mint Collateral NFT'
+              <div className="flex-1 relative group">
+                <button
+                  onClick={handleMintCollateral}
+                  disabled={!selectedFile || isUploading || !account || !kycVerified}
+                  className={`w-full px-6 py-3 rounded-lg font-semibold shadow-lg transition-all transform ${
+                    !kycVerified 
+                      ? 'bg-slate-700 cursor-not-allowed opacity-50' 
+                      : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 hover:shadow-cyan-500/50 hover:scale-105 disabled:from-slate-700 disabled:to-slate-600 disabled:cursor-not-allowed disabled:transform-none'
+                  }`}
+                >
+                  {isUploading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      {t('collateral.minting')}
+                    </span>
+                  ) : (
+                    `🚀 ${t('collateral.mintNFT')}`
+                  )}
+                </button>
+                {!kycVerified && !isCheckingKYC && (
+                  <div className="absolute -top-12 left-0 right-0 bg-yellow-500/90 text-black text-sm px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center">
+                    ⚠️ Cần xác thực KYC trước
+                  </div>
                 )}
-              </button>
+              </div>
               
               <button
                 onClick={resetForm}
                 className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition-all"
               >
-                Reset
+                {t('collateral.resetForm')}
               </button>
             </div>
           </div>
@@ -537,13 +652,13 @@ export default function CollateralManager() {
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-semibold flex items-center gap-2">
               <span className="text-2xl">📋</span>
-              Danh sách Tài sản của bạn
+              {t('collateral.myCollaterals')}
             </h3>
             <button
               onClick={loadUserCollaterals}
               className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-all"
             >
-              🔄 Refresh
+              🔄 {t('common.loading')}
             </button>
           </div>
           
@@ -554,7 +669,8 @@ export default function CollateralManager() {
           ) : userCollaterals.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4 opacity-20">📦</div>
-              <p className="text-slate-400">Chưa có tài sản nào được token hóa</p>
+              <p className="text-slate-400">{t('collateral.noAssets')}</p>
+              <p className="text-slate-500 text-sm mt-2">{t('collateral.noAssetsDesc')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -610,41 +726,41 @@ export default function CollateralManager() {
 
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-slate-500">Giá trị</p>
+                        <p className="text-xs text-slate-500">{t('collateral.value')}</p>
                         <p className="text-lg font-bold text-green-400">${nft.estimatedValue}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-slate-500">Ngày tạo</p>
+                        <p className="text-xs text-slate-500">{t('collateral.createdDate')}</p>
                         <p className="text-xs text-slate-300">{nft.uploadTimestamp}</p>
                       </div>
                     </div>
 
                     {nft.isLocked ? (
                       <div className="p-3 bg-gradient-to-r from-red-900/30 to-pink-900/30 border border-red-500/30 rounded-lg">
-                        <p className="text-sm font-semibold text-red-400 mb-1">🔒 Đang thế chấp</p>
+                        <p className="text-sm font-semibold text-red-400 mb-1">🔒 {t('collateral.locked')}</p>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div>
-                            <p className="text-slate-500">Khoản vay</p>
+                            <p className="text-slate-500">{t('collateral.loan')}</p>
                             <p className="text-red-300 font-mono">${nft.loanAmount}</p>
                           </div>
                           <div>
-                            <p className="text-slate-500">LTV</p>
+                            <p className="text-slate-500">{t('collateral.ltvRatio')}</p>
                             <p className="text-red-300 font-mono">{nft.ltvRatio}%</p>
                           </div>
                         </div>
                       </div>
                     ) : (
                       <div className="p-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-lg">
-                        <p className="text-sm font-semibold text-green-400 mb-2">✅ Sẵn sàng sử dụng</p>
+                        <p className="text-sm font-semibold text-green-400 mb-2">✅ {t('collateral.available')}</p>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            const newValue = prompt('Nhập giá trị mới (USDC):', nft.estimatedValue);
+                            const newValue = prompt(t('collateral.messages.enterNewValue'), nft.estimatedValue);
                             if (newValue) handleUpdateValue(nft.tokenId, newValue);
                           }}
                           className="w-full px-3 py-2 bg-green-600/20 hover:bg-green-600/40 border border-green-500/50 rounded-lg text-xs text-green-300 transition-all"
                         >
-                          Cập nhật giá trị
+                          {t('collateral.updateValue')}
                         </button>
                       </div>
                     )}
@@ -675,7 +791,7 @@ export default function CollateralManager() {
           >
             {/* Modal Header */}
             <div className="sticky top-0 bg-slate-800 border-b border-slate-700 p-6 flex items-center justify-between z-10">
-              <h3 className="text-2xl font-bold">Chi tiết NFT #{selectedNFT.tokenId}</h3>
+              <h3 className="text-2xl font-bold">{t('collateral.nftDetails')} #{selectedNFT.tokenId}</h3>
               <button
                 onClick={() => setSelectedNFT(null)}
                 className="w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-lg flex items-center justify-center transition-all"
@@ -697,19 +813,19 @@ export default function CollateralManager() {
               {/* Details Grid */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-slate-900/50 rounded-lg">
-                  <p className="text-sm text-slate-400 mb-1">Tên tài sản</p>
+                  <p className="text-sm text-slate-400 mb-1">{t('collateral.assetName')}</p>
                   <p className="text-lg font-semibold text-white">{selectedNFT.assetName}</p>
                 </div>
                 <div className="p-4 bg-slate-900/50 rounded-lg">
-                  <p className="text-sm text-slate-400 mb-1">Loại</p>
+                  <p className="text-sm text-slate-400 mb-1">{t('collateral.type')}</p>
                   <p className="text-lg font-semibold text-cyan-400">{selectedNFT.assetType}</p>
                 </div>
                 <div className="p-4 bg-slate-900/50 rounded-lg">
-                  <p className="text-sm text-slate-400 mb-1">Giá trị ước tính</p>
+                  <p className="text-sm text-slate-400 mb-1">{t('collateral.estimatedValue')}</p>
                   <p className="text-2xl font-bold text-green-400">${selectedNFT.estimatedValue}</p>
                 </div>
                 <div className="p-4 bg-slate-900/50 rounded-lg">
-                  <p className="text-sm text-slate-400 mb-1">Ngày tạo</p>
+                  <p className="text-sm text-slate-400 mb-1">{t('collateral.createdDate')}</p>
                   <p className="text-lg text-slate-300">{selectedNFT.uploadTimestamp}</p>
                 </div>
               </div>
@@ -717,7 +833,7 @@ export default function CollateralManager() {
               {/* Description */}
               {selectedNFT.description && (
                 <div className="p-4 bg-slate-900/50 rounded-lg">
-                  <p className="text-sm text-slate-400 mb-2">Mô tả</p>
+                  <p className="text-sm text-slate-400 mb-2">{t('collateral.description')}</p>
                   <p className="text-slate-300">{selectedNFT.description}</p>
                 </div>
               )}
@@ -729,16 +845,16 @@ export default function CollateralManager() {
                   : 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30'
               }`}>
                 <p className="text-lg font-semibold mb-3">
-                  {selectedNFT.isLocked ? '🔒 Trạng thái: Đang thế chấp' : '✅ Trạng thái: Sẵn sàng'}
+                  {selectedNFT.isLocked ? `🔒 ${t('collateral.lockedStatus')}` : `✅ ${t('collateral.availableStatus')}`}
                 </p>
                 {selectedNFT.isLocked && (
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-slate-400">Khoản vay</p>
-                      <p className="text-red-300 font-mono text-lg">${selectedNFT.loanAmount} USDC</p>
+                      <p className="text-slate-400">{t('collateral.loan')}</p>
+                      <p className="text-red-300 font-mono text-lg">${selectedNFT.loanAmount} {t('common.currency.usdc')}</p>
                     </div>
                     <div>
-                      <p className="text-slate-400">LTV Ratio</p>
+                      <p className="text-slate-400">{t('collateral.ltvRatio')}</p>
                       <p className="text-red-300 font-mono text-lg">{selectedNFT.ltvRatio}%</p>
                     </div>
                   </div>
@@ -752,7 +868,7 @@ export default function CollateralManager() {
                 rel="noopener noreferrer"
                 className="block w-full px-4 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-lg text-center font-semibold transition-all"
               >
-                🌐 Xem trên IPFS Gateway
+                🌐 {t('common.viewOnIPFS')}
               </a>
             </div>
           </div>

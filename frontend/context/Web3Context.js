@@ -485,7 +485,7 @@ export function Web3Provider({ children }) {
   }, [streamCreditContract, signer, getAccountInfo, account]);
 
   // Mint collateral NFT and save to MongoDB
-  const mintCollateral = useCallback(async (assetName, assetType, estimatedValue, description, imageIPFSHash, fileHash, metadataURI, originalFilename, fileSize, mimeType) => {
+  const mintCollateral = useCallback(async (assetName, assetType, estimatedValue, description, imageIPFSHash, imageURL, fileHash, metadataURI, originalFilename, fileSize, mimeType) => {
     if (!collateralNFT || !signer || !account) {
       throw new Error('Contract not initialized or wallet not connected');
     }
@@ -547,8 +547,10 @@ export function Web3Provider({ children }) {
           estimatedValue: valueInUSDC,
           description,
           imageIPFSHash,
-          imageURL: `https://${imageIPFSHash}.ipfs.thirdwebstorage.com`,
+          imageURL: imageURL || `https://${imageIPFSHash}.ipfs.thirdwebstorage.com`,
           metadataURI,
+          fileHash,
+          originalFilename,
           fileSize,
           mimeType,
           mintTxHash: tx.hash

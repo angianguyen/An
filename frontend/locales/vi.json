@@ -1,0 +1,401 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "confirm": "Xác nhận",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "close": "Đóng",
+    "back": "Quay lại",
+    "next": "Tiếp",
+    "submit": "Gửi",
+    "connect": "Kết nối",
+    "disconnect": "Ngắt kết nối",
+    "connected": "Đã kết nối",
+    "notConnected": "Chưa kết nối",
+    "viewOnIPFS": "Xem trên IPFS Gateway",
+    "currency": {
+      "usdc": "USDC"
+    }
+  },
+  
+  "nav": {
+    "home": "Trang chủ",
+    "dashboard": "Bảng điều khiển",
+    "collateral": "Quản lý Tài sản",
+    "loans": "Quản lý Khoản vay",
+    "invoice": "Quản lý Hóa đơn",
+    "benford": "Phân tích Benford",
+    "features": "Tính năng",
+    "howItWorks": "Cách hoạt động",
+    "team": "Đội ngũ",
+    "roadmap": "Lộ trình",
+    "backToHome": "Quay về trang chủ"
+  },
+  
+  "collateral": {
+    "title": "Quản lý Tài sản Thế chấp",
+    "subtitle": "Token hóa tài sản → Tạo ZK Proof → Nhận Credit On-Chain",
+    "uploadTitle": "Tạo Collateral NFT Mới",
+    "uploadSubtitle": "Upload ảnh tài sản, tính hash, lưu IPFS và mint NFT",
+    "assetName": "Tên tài sản",
+    "assetNamePlaceholder": "Nhập tên tài sản...",
+    "assetType": "Loại tài sản",
+    "estimatedValue": "Giá trị ước tính (USDC)",
+    "valuePlaceholder": "Nhập giá trị USDC...",
+    "description": "Mô tả",
+    "descriptionPlaceholder": "Mô tả tài sản của bạn...",
+    "selectImage": "Chọn ảnh",
+    "dragDrop": "hoặc kéo thả",
+    "fileRequirements": "PNG, JPG, GIF tối đa 10MB",
+    "mintNFT": "Mint Collateral NFT",
+    "minting": "Đang mint...",
+    "resetForm": "Làm mới Form",
+    "myCollaterals": "Tài sản NFT của tôi",
+    "loading": "Đang tải tài sản...",
+    "noAssets": "Chưa có tài sản thế chấp",
+    "noAssetsDesc": "Bắt đầu bằng việc upload ảnh tài sản đầu tiên ở trên",
+    "value": "Giá trị",
+    "createdDate": "Ngày tạo",
+    "locked": "Đang thế chấp",
+    "available": "Sẵn sàng",
+    "loan": "Khoản vay",
+    "ltvRatio": "LTV",
+    "updateValue": "Cập nhật giá trị",
+    "nftDetails": "Chi tiết NFT",
+    "assetDetails": "Chi tiết tài sản",
+    "type": "Loại",
+    "status": "Trạng thái",
+    "lockedStatus": "Trạng thái: Đang thế chấp",
+    "availableStatus": "Trạng thái: Sẵn sàng",
+    "assetTypes": {
+      "machinery": "Máy móc thiết bị",
+      "inventory": "Hàng tồn kho",
+      "realEstate": "Bất động sản",
+      "vehicle": "Phương tiện",
+      "invoice": "Hóa đơn",
+      "receivables": "Khoản phải thu",
+      "other": "Khác"
+    },
+    "workflow": {
+      "step1": "Chọn dữ liệu",
+      "step2": "Tạo Hash",
+      "step3": "IPFS Upload",
+      "step4": "On-Chain"
+    },
+    "messages": {
+      "fillAllFields": "Vui lòng điền đầy đủ thông tin!",
+      "calculatingHash": "Đang tính hash... Vui lòng đợi",
+      "uploadSuccess": "Upload thành công!",
+      "mintSuccess": "Mint thành công! Token ID: {{tokenId}}",
+      "updateSuccess": "Cập nhật giá trị thành công!",
+      "error": "Lỗi: {{message}}",
+      "selectImageFile": "Vui lòng chọn file ảnh (JPG, PNG, etc.)",
+      "fileTooLarge": "File quá lớn! Vui lòng chọn ảnh nhỏ hơn 10MB",
+      "fileAlreadyTokenized": "⚠️ File đã được token hóa (Token #{{tokenId}})",
+      "hashCreated": "Hash tạo thành công",
+      "uploadingIPFS": "Đang upload lên IPFS...",
+      "mintingNFT": "Đang mint NFT on-chain...",
+      "enterNewValue": "Nhập giá trị mới (USDC):"
+    }
+  },
+  
+  "loan": {
+    "title": "Quản lý Khoản vay Phi tập trung",
+    "subtitle": "Vay dựa trên NFT thế chấp với điều khoản minh bạch, có thể kiểm toán",
+    "createLoan": "Tạo Khoản vay Mới",
+    "selectCollateral": "Chọn NFT Thế chấp",
+    "selectPlaceholder": "Chọn tài sản...",
+    "loanAmount": "Số tiền vay (USDC)",
+    "amountPlaceholder": "Nhập số tiền...",
+    "interestRate": "Lãi suất (%/năm)",
+    "ratePlaceholder": "ví dụ: 12",
+    "duration": "Thời hạn (ngày)",
+    "durationPlaceholder": "ví dụ: 90",
+    "createLoanButton": "Tạo khoản vay",
+    "creating": "Đang tạo...",
+    "myLoans": "Lịch sử Khoản vay",
+    "activeLoans": "Khoản vay Đang hoạt động",
+    "repaidLoans": "Khoản vay Đã trả",
+    "loading": "Đang tải khoản vay...",
+    "noLoans": "Chưa có khoản vay",
+    "noLoansDesc": "Tạo khoản vay đầu tiên bằng tài sản thế chấp ở trên",
+    "loanId": "Khoản vay #",
+    "collateralToken": "Token Thế chấp #",
+    "amount": "Số tiền",
+    "interest": "Lãi suất",
+    "durationLabel": "Thời hạn",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày đến hạn",
+    "status": "Trạng thái",
+    "repay": "Trả nợ",
+    "repaying": "Đang trả...",
+    "viewDetails": "Xem chi tiết",
+    "loanDetails": "Chi tiết Khoản vay #{{loanId}}",
+    "borrower": "Người vay",
+    "collateralDetails": "Chi tiết Tài sản thế chấp",
+    "loanTerms": "Điều khoản Khoản vay",
+    "timeline": "Thời gian",
+    "repayLoan": "Trả Khoản vay",
+    "totalRepayment": "Tổng thanh toán",
+    "principal": "Gốc",
+    "interestAmount": "Lãi",
+    "statuses": {
+      "active": "Đang hoạt động",
+      "repaid": "Đã trả",
+      "defaulted": "Quá hạn"
+    },
+    "messages": {
+      "selectCollateral": "Vui lòng chọn NFT thế chấp!",
+      "fillAllFields": "Vui lòng điền đầy đủ các trường!",
+      "createSuccess": "Tạo khoản vay thành công!",
+      "repaySuccess": "Trả nợ thành công!",
+      "error": "Lỗi: {{message}}"
+    }
+  },
+  
+  "invoice": {
+    "title": "Quản lý Invoice NFT",
+    "subtitle": "Token hóa hóa đơn để factoring và tài trợ",
+    "uploadTitle": "Tạo Invoice NFT",
+    "invoiceNumber": "Số hóa đơn",
+    "invoiceNumberPlaceholder": "ví dụ: HD-2024-001",
+    "issuer": "Người phát hành",
+    "issuerPlaceholder": "Tên công ty...",
+    "debtor": "Người nợ",
+    "debtorPlaceholder": "Tên khách hàng...",
+    "amount": "Số tiền (USDC)",
+    "amountPlaceholder": "Số tiền hóa đơn...",
+    "issueDate": "Ngày phát hành",
+    "dueDate": "Ngày đến hạn",
+    "description": "Mô tả",
+    "descriptionPlaceholder": "Mô tả hóa đơn...",
+    "uploadDocument": "Upload Tài liệu Hóa đơn",
+    "selectFile": "Chọn PDF/Ảnh",
+    "mintInvoice": "Mint Invoice NFT",
+    "minting": "Đang mint...",
+    "myInvoices": "Invoice NFT của tôi",
+    "loading": "Đang tải hóa đơn...",
+    "noInvoices": "Chưa có invoice NFT",
+    "noInvoicesDesc": "Upload hóa đơn đầu tiên để bắt đầu",
+    "tokenId": "Token #",
+    "status": "Trạng thái",
+    "viewDetails": "Xem chi tiết",
+    "statuses": {
+      "pending": "Chờ xử lý",
+      "paid": "Đã thanh toán",
+      "overdue": "Quá hạn"
+    }
+  },
+  
+  "benford": {
+    "title": "Phân tích Định luật Benford",
+    "subtitle": "Phát hiện gian lận thống kê bằng phân phối chữ số đầu tiên",
+    "uploadData": "Upload Dữ liệu Giao dịch",
+    "selectFile": "Chọn File CSV",
+    "analyze": "Phân tích",
+    "analyzing": "Đang phân tích...",
+    "results": "Kết quả Phân tích",
+    "noData": "Chưa có dữ liệu phân tích",
+    "uploadDescription": "Upload file CSV với số tiền giao dịch để phân tích",
+    "fraudScore": "Điểm Rủi ro Gian lận",
+    "chiSquare": "Thống kê Chi bình phương",
+    "pValue": "Giá trị P",
+    "interpretation": "Giải thích",
+    "lowRisk": "Rủi ro Thấp - Phân phối phù hợp với Định luật Benford",
+    "moderateRisk": "Rủi ro Trung bình - Phát hiện một số lệch",
+    "highRisk": "Rủi ro Cao - Lệch đáng kể so với phân phối kỳ vọng",
+    "digitDistribution": "Phân phối Chữ số Đầu tiên",
+    "expected": "Kỳ vọng (Benford)",
+    "observed": "Quan sát",
+    "digit": "Chữ số"
+  },
+  
+  "wallet": {
+    "connect": "Kết nối Ví",
+    "disconnect": "Ngắt kết nối",
+    "connected": "Đã kết nối",
+    "address": "Địa chỉ",
+    "balance": "Số dư",
+    "network": "Mạng",
+    "wrongNetwork": "Sai Mạng",
+    "pleaseSwitch": "Vui lòng chuyển sang {{network}}",
+    "notConnected": "Ví chưa kết nối",
+    "connectPrompt": "Vui lòng kết nối ví để tiếp tục"
+  },
+  
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "welcome": "Chào mừng trở lại",
+    "stats": {
+      "totalCollateral": "Tổng Giá trị Tài sản",
+      "activeLoans": "Khoản vay Đang hoạt động",
+      "totalBorrowed": "Tổng Đã vay",
+      "creditScore": "Điểm Tín dụng"
+    }
+  },
+  
+  "footer": {
+    "description": "Giải pháp tài chính phi tập trung thế hệ mới. Bảo mật bởi Zero-Knowledge Proofs và vận hành trên Sepolia Testnet.",
+    "rights": "© 2024 StreamCredit Labs.",
+    "poweredBy": "Được hỗ trợ bởi",
+    "documentation": "Tài liệu",
+    "support": "Hỗ trợ",
+    "terms": "Điều khoản Dịch vụ",
+    "privacy": "Chính sách Bảo mật"
+  },
+  
+  "team": {
+    "title": "Những người kiến tạo",
+    "subtitle": "Chúng tôi là tập hợp của những kỹ sư, nhà nghiên cứu và chuyên gia tài chính với niềm tin mãnh liệt vào tương lai của DeFi.",
+    "leader": "LEADER",
+    "member1": {
+      "name": "Nguyễn Văn An",
+      "role": "Co-Founder & CEO",
+      "bio": "10 năm kinh nghiệm trong Fintech và Ngân hàng số. Cựu Product Manager tại TechBank."
+    },
+    "member2": {
+      "name": "Trần Thị Bình",
+      "role": "CTO & Lead ZK Researcher",
+      "bio": "Chuyên gia về Cryptography và ZK-Rollups. Đóng góp tích cực cho cộng đồng Ethereum."
+    },
+    "member3": {
+      "name": "Lê Minh Cường",
+      "role": "Smart Contract Engineer",
+      "bio": "Full-stack Web3 developer. Đã audit an ninh cho nhiều giao thức DeFi lớn."
+    },
+    "joinUs": {
+      "title": "Bạn muốn tham gia cùng chúng tôi?",
+      "description": "StreamCredit đang tìm kiếm những tài năng đam mê ZK-Proofs và DeFi. Hãy gửi CV của bạn ngay hôm nay.",
+      "button": "Gửi Email Ứng Tuyển"
+    }
+  },
+  
+  "landing": {
+    "hero": {
+      "title1": "Tín dụng Minh bạch",
+      "title2": "Bảo mật Tuyệt đối",
+      "subtitle": "Giải pháp RWA Lending đầu tiên kết hợp",
+      "zkProofs": "Zero-Knowledge Proofs",
+      "and": "và",
+      "benfordLaw": "Benford's Law",
+      "description": "để xác thực dòng tiền doanh nghiệp mà không lộ dữ liệu nhạy cảm.",
+      "launchApp": "Launch App",
+      "learnMore": "Tìm hiểu thêm",
+      "openDemo": "Mở Demo App",
+      "manageLoans": "Manage Loans",
+      "collateralNFT": "Collateral NFT",
+      "liveOnSepolia": "Live on Sepolia Testnet"
+    },
+    "features": {
+      "title": "Công nghệ Cốt lõi",
+      "subtitle": "Chúng tôi xây dựng trust-layer cho tài chính phi tập trung bằng cách kết hợp mật mã học tiên tiến và phân tích thống kê.",
+      "zkPrivacy": {
+        "title": "Zero-Knowledge Privacy",
+        "description": "Tạo bằng chứng xác thực doanh thu (ZK-Proof) ngay trên trình duyệt. Dữ liệu gốc không bao giờ rời khỏi máy của bạn."
+      },
+      "fraudDetection": {
+        "title": "Fraud Detection",
+        "description": "Sử dụng Benford's Law để phát hiện các mẫu dữ liệu wash trading hoặc làm giả báo cáo tài chính tự động."
+      },
+      "realWorldAssets": {
+        "title": "Real-World Assets",
+        "description": "Kết nối dữ liệu doanh thu thực tế (Off-chain) với thanh khoản trên chuỗi (On-chain) thông qua Oracle."
+      },
+      "dynamicCredit": {
+        "title": "Dynamic Credit",
+        "description": "Hạn mức tín dụng được cập nhật theo thời gian thực dựa trên sức khỏe dòng tiền được chứng minh."
+      }
+    },
+    "workflow": {
+      "title": "Luồng Dữ Liệu",
+      "subtitle": "Hoạt Động Như Thế Nào?",
+      "description": "Hệ thống đảm bảo tính bí mật tuyệt đối cho dữ liệu doanh nghiệp, trong khi vẫn cho phép theo dõi minh bạch mỗi khoản vay, hoàn toán lãi và lập trúng.",
+      "tryNow": "Trải nghiệm ngay",
+      "step1": {
+        "title": "Data Ingestion",
+        "description": "Người dùng tải CSV file thông qua API (Shopify/Stripe). Hệ thống lấy dữ liệu giao dịch lịch sử về máy khách (Client-side)."
+      },
+      "step2": {
+        "title": "Anomaly Check",
+        "description": "Thuật toán Benford chạy cục bộ để tính toán điểm gian lận. Nếu điểm số ≥ ngưỡng (Threshold), quy định được gửi đi."
+      },
+      "step3": {
+        "title": "ZK Proving",
+        "description": "Tạo bằng chứng Growth Proof cục bộ: \"Tôi có doanh thu ≥ $X và Benford Score hợp lệ K%\" mà không phơi bày số liệu nội bộ."
+      },
+      "step4": {
+        "title": "On-Chain Settlement",
+        "description": "Smart Contract xác minh bằng chứng. Nếu đúng, hạn mức tín dụng (Credit Limit) được cập nhật và tính toán lãi suất (USDC)."
+      }
+    },
+    "roadmap": {
+      "title": "Lộ Trình Phát Triển",
+      "completed": "HOÀN THÀNH",
+      "inProgress": "ĐANG PHÁT TRIỂN",
+      "planned": "KẾ HOẠCH",
+      "mvp": {
+        "title": "MVP Launch (Sepolia)",
+        "description": "Ra mắt bản demo tích hợp Benford check, ZK circuit co kết nối với mock USDC faucet"
+      },
+      "liquidityPools": {
+        "title": "Liquidity Pools & Staking",
+        "description": "Cho phép Lenders cung cấp thanh khoản (USDC) để kiếm lợi suất (Yield) từ lãi vay cho Borrowers."
+      },
+      "oracles": {
+        "title": "Decentralized Oracles",
+        "description": "Thay thế Mock API bằng mạng lưới Oracle phi tập trung (Chainlink Functions) để xác thực nguồn dữ liệu."
+      }
+    },
+    "team": {
+      "title": "Đội ngũ của chúng tôi",
+      "subtitle": "Gặp gỡ những người đổi mới đằng sau StreamCredit",
+      "backToHome": "Quay về trang chủ"
+    },
+    "cta": {
+      "ready": "Sẵn sàng Biến đổi Trải nghiệm Cho vay?",
+      "description": "Tham gia cùng hàng ngàn người dùng tận dụng công nghệ blockchain để cho vay minh bạch, an toàn",
+      "getStarted": "Bắt đầu Ngay"
+    }
+  },
+  
+  "console": {
+    "title": "Console Demo Tương tác",
+    "scenarios": {
+      "honest": {
+        "name": "Honest Merchant",
+        "desc": "Dữ liệu bán lẻ tự nhiên tuân theo quy luật Benford."
+      },
+      "fraud": {
+        "name": "Wash Trader",
+        "desc": "Dấu hiệu thao túng volume (số tròn, lặp lại bất thường)."
+      }
+    },
+    "selectScenario": "Chọn một scenario để bắt đầu",
+    "processing": "Đang xử lý...",
+    "step1": {
+      "title": "Bước 1: Chọn Kịch bản",
+      "description": "Chọn kịch bản thử nghiệm"
+    },
+    "step2": {
+      "title": "Bước 2: Phân tích Dữ liệu",
+      "description": "Phân tích mẫu giao dịch"
+    },
+    "step3": {
+      "title": "Bước 3: Tạo ZK Proof",
+      "description": "Tạo bằng chứng Zero-Knowledge"
+    },
+    "step4": {
+      "title": "Bước 4: Gửi On-Chain",
+      "description": "Gửi lên smart contract"
+    },
+    "creditInfo": {
+      "limit": "Hạn mức Tín dụng",
+      "borrowed": "Đã vay",
+      "available": "Khả dụng"
+    }
+  }
+}

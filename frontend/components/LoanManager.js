@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useWeb3 } from '../context/Web3Context';
 import { useLoanHistory, useLoanStats } from '../hooks/useLoanHistory';
+import { useCollateralHistory } from '../hooks/useCollateralHistory';
+import CollateralInterestCalculator from './CollateralInterestCalculator';
+import { calculateFinalInterestRate } from '../utils/collateralInterest';
 import { 
   AlertCircle, 
   TrendingDown, 
@@ -22,10 +25,13 @@ export default function LoanManager() {
   const { account, getAccountInfo, borrow, repay, payCommitmentFee, getInterestRate } = useWeb3();
   const { loans, loading: loansLoading, refetch: refetchLoans } = useLoanHistory(account);
   const { stats, recentLoans, loading: statsLoading, refetch: refetchStats } = useLoanStats(account);
+  const { collaterals: userCollaterals, loading: collateralsLoading } = useCollateralHistory(account);
   const [accountInfo, setAccountInfo] = useState(null);
   const [borrowAmount, setBorrowAmount] = useState('');
   const [borrowTerm, setBorrowTerm] = useState(30);
   const [selectedRate, setSelectedRate] = useState(5);
+  const [selectedCollateral, setSelectedCollateral] = useState(null);
+  const [rateWithCollateral, setRateWithCollateral] = useState(null);
   const [maxAllowedTerm, setMaxAllowedTerm] = useState(365);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -74,6 +80,15 @@ export default function LoanManager() {
     };
     fetchRate();
   }, [borrowTerm, getInterestRate]);
+  
+  // Calculate rate with collateral discount
+  useEffect(() => {
+    if (borrowAmount > 0 && borrowTerm > 0) {
+      const collateralValue = selectedCollateral?.estimatedValue || 0;
+      const rateInfo = calculateFinalInterestRate(borrowTerm, parseFloat(borrowAmount), collateralValue);
+      setRateWithCollateral(rateInfo);
+    }
+  }, [borrowAmount, borrowTerm, selectedCollateral]);
   
   // Fetch last repaid loan from database for cooldown display
   useEffect(() => {
@@ -478,6 +493,18 @@ export default function LoanManager() {
                 ))}
               </div>
             </div>
+
+            {/* Collateral Interest Calculator */}
+            {borrowAmount > 0 && borrowTerm > 0 && (
+              <div className="mb-6">
+                <CollateralInterestCalculator 
+                  loanAmount={parseFloat(borrowAmount) || 0}
+                  termDays={borrowTerm}
+                  userCollaterals={userCollaterals}
+                  onCollateralSelect={setSelectedCollateral}
+                />
+              </div>
+            )}
 
             <form onSubmit={handleBorrow} className="space-y-6">
               <div>

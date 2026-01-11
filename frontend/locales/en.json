@@ -1,0 +1,401 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "notConnected": "Not Connected",
+    "viewOnIPFS": "View on IPFS Gateway",
+    "currency": {
+      "usdc": "USDC"
+    }
+  },
+  
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "collateral": "Collateral Management",
+    "loans": "Loan Management",
+    "invoice": "Invoice Management",
+    "benford": "Benford Analysis",
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "team": "Team",
+    "roadmap": "Roadmap",
+    "backToHome": "Back to Home"
+  },
+  
+  "collateral": {
+    "title": "Collateral Asset Management",
+    "subtitle": "Tokenize assets → Create ZK Proof → Get On-Chain Credit",
+    "uploadTitle": "Create New Collateral NFT",
+    "uploadSubtitle": "Upload asset image, calculate hash, store on IPFS, and mint NFT",
+    "assetName": "Asset Name",
+    "assetNamePlaceholder": "Enter asset name...",
+    "assetType": "Asset Type",
+    "estimatedValue": "Estimated Value (USDC)",
+    "valuePlaceholder": "Enter value in USDC...",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe your asset...",
+    "selectImage": "Select Image",
+    "dragDrop": "or drag and drop",
+    "fileRequirements": "PNG, JPG, GIF up to 10MB",
+    "mintNFT": "Mint Collateral NFT",
+    "minting": "Minting...",
+    "resetForm": "Reset Form",
+    "myCollaterals": "My Collateral NFTs",
+    "loading": "Loading your assets...",
+    "noAssets": "No collateral assets yet",
+    "noAssetsDesc": "Start by uploading your first asset image above",
+    "value": "Value",
+    "createdDate": "Created Date",
+    "locked": "Locked for Collateral",
+    "available": "Available",
+    "loan": "Loan",
+    "ltvRatio": "LTV",
+    "updateValue": "Update Value",
+    "nftDetails": "NFT Details",
+    "assetDetails": "Asset Details",
+    "type": "Type",
+    "status": "Status",
+    "lockedStatus": "Status: Locked",
+    "availableStatus": "Status: Available",
+    "assetTypes": {
+      "machinery": "Machinery & Equipment",
+      "inventory": "Inventory",
+      "realEstate": "Real Estate",
+      "vehicle": "Vehicle",
+      "invoice": "Invoice",
+      "receivables": "Accounts Receivable",
+      "other": "Other"
+    },
+    "workflow": {
+      "step1": "Select Data",
+      "step2": "Create Hash",
+      "step3": "IPFS Upload",
+      "step4": "On-Chain"
+    },
+    "messages": {
+      "fillAllFields": "Please fill in all required fields!",
+      "calculatingHash": "Calculating hash... Please wait",
+      "uploadSuccess": "Upload successful!",
+      "mintSuccess": "Mint successful! Token ID: {{tokenId}}",
+      "updateSuccess": "Value updated successfully!",
+      "error": "Error: {{message}}",
+      "selectImageFile": "Please select an image file (JPG, PNG, etc.)",
+      "fileTooLarge": "File too large! Please select an image smaller than 10MB",
+      "fileAlreadyTokenized": "⚠️ File already tokenized (Token #{{tokenId}})",
+      "hashCreated": "Hash created successfully",
+      "uploadingIPFS": "Uploading to IPFS...",
+      "mintingNFT": "Minting NFT on-chain...",
+      "enterNewValue": "Enter new value (USDC):"
+    }
+  },
+  
+  "loan": {
+    "title": "Decentralized Loan Management",
+    "subtitle": "Borrow against collateral NFTs with transparent, auditable terms",
+    "createLoan": "Create New Loan",
+    "selectCollateral": "Select Collateral NFT",
+    "selectPlaceholder": "Choose asset...",
+    "loanAmount": "Loan Amount (USDC)",
+    "amountPlaceholder": "Enter amount...",
+    "interestRate": "Interest Rate (%/year)",
+    "ratePlaceholder": "e.g., 12",
+    "duration": "Duration (days)",
+    "durationPlaceholder": "e.g., 90",
+    "createLoanButton": "Create Loan",
+    "creating": "Creating...",
+    "myLoans": "My Loan History",
+    "activeLoans": "Active Loans",
+    "repaidLoans": "Repaid Loans",
+    "loading": "Loading loans...",
+    "noLoans": "No loans yet",
+    "noLoansDesc": "Create your first loan using collateral above",
+    "loanId": "Loan #",
+    "collateralToken": "Collateral Token #",
+    "amount": "Amount",
+    "interest": "Interest",
+    "durationLabel": "Duration",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "status": "Status",
+    "repay": "Repay",
+    "repaying": "Repaying...",
+    "viewDetails": "View Details",
+    "loanDetails": "Loan Details #{{loanId}}",
+    "borrower": "Borrower",
+    "collateralDetails": "Collateral Details",
+    "loanTerms": "Loan Terms",
+    "timeline": "Timeline",
+    "repayLoan": "Repay Loan",
+    "totalRepayment": "Total Repayment",
+    "principal": "Principal",
+    "interestAmount": "Interest",
+    "statuses": {
+      "active": "Active",
+      "repaid": "Repaid",
+      "defaulted": "Defaulted"
+    },
+    "messages": {
+      "selectCollateral": "Please select collateral NFT!",
+      "fillAllFields": "Please fill in all fields!",
+      "createSuccess": "Loan created successfully!",
+      "repaySuccess": "Loan repaid successfully!",
+      "error": "Error: {{message}}"
+    }
+  },
+  
+  "invoice": {
+    "title": "Invoice NFT Management",
+    "subtitle": "Tokenize invoices for factoring and financing",
+    "uploadTitle": "Create Invoice NFT",
+    "invoiceNumber": "Invoice Number",
+    "invoiceNumberPlaceholder": "e.g., INV-2024-001",
+    "issuer": "Issuer",
+    "issuerPlaceholder": "Company name...",
+    "debtor": "Debtor",
+    "debtorPlaceholder": "Customer name...",
+    "amount": "Amount (USDC)",
+    "amountPlaceholder": "Invoice amount...",
+    "issueDate": "Issue Date",
+    "dueDate": "Due Date",
+    "description": "Description",
+    "descriptionPlaceholder": "Invoice description...",
+    "uploadDocument": "Upload Invoice Document",
+    "selectFile": "Select PDF/Image",
+    "mintInvoice": "Mint Invoice NFT",
+    "minting": "Minting...",
+    "myInvoices": "My Invoice NFTs",
+    "loading": "Loading invoices...",
+    "noInvoices": "No invoice NFTs yet",
+    "noInvoicesDesc": "Upload your first invoice to get started",
+    "tokenId": "Token #",
+    "status": "Status",
+    "viewDetails": "View Details",
+    "statuses": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "overdue": "Overdue"
+    }
+  },
+  
+  "benford": {
+    "title": "Benford's Law Analysis",
+    "subtitle": "Statistical fraud detection using first-digit distribution",
+    "uploadData": "Upload Transaction Data",
+    "selectFile": "Select CSV File",
+    "analyze": "Analyze",
+    "analyzing": "Analyzing...",
+    "results": "Analysis Results",
+    "noData": "No data analyzed yet",
+    "uploadDescription": "Upload a CSV file with transaction amounts to analyze",
+    "fraudScore": "Fraud Risk Score",
+    "chiSquare": "Chi-Square Statistic",
+    "pValue": "P-Value",
+    "interpretation": "Interpretation",
+    "lowRisk": "Low Risk - Distribution matches Benford's Law",
+    "moderateRisk": "Moderate Risk - Some deviation detected",
+    "highRisk": "High Risk - Significant deviation from expected distribution",
+    "digitDistribution": "First Digit Distribution",
+    "expected": "Expected (Benford)",
+    "observed": "Observed",
+    "digit": "Digit"
+  },
+  
+  "wallet": {
+    "connect": "Connect Wallet",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "address": "Address",
+    "balance": "Balance",
+    "network": "Network",
+    "wrongNetwork": "Wrong Network",
+    "pleaseSwitch": "Please switch to {{network}}",
+    "notConnected": "Wallet not connected",
+    "connectPrompt": "Please connect your wallet to continue"
+  },
+  
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "stats": {
+      "totalCollateral": "Total Collateral Value",
+      "activeLoans": "Active Loans",
+      "totalBorrowed": "Total Borrowed",
+      "creditScore": "Credit Score"
+    }
+  },
+  
+  "footer": {
+    "description": "Next-generation decentralized finance solution. Secured by Zero-Knowledge Proofs and operating on Sepolia Testnet.",
+    "rights": "© 2024 StreamCredit Labs.",
+    "poweredBy": "Powered by",
+    "documentation": "Documentation",
+    "support": "Support",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
+  },
+  
+  "team": {
+    "title": "The Builders",
+    "subtitle": "We are a collective of engineers, researchers, and financial experts with a strong belief in the future of DeFi.",
+    "leader": "LEADER",
+    "member1": {
+      "name": "Nguyen Van An",
+      "role": "Co-Founder & CEO",
+      "bio": "10 years of experience in Fintech and Digital Banking. Former Product Manager at TechBank."
+    },
+    "member2": {
+      "name": "Tran Thi Binh",
+      "role": "CTO & Lead ZK Researcher",
+      "bio": "Expert in Cryptography and ZK-Rollups. Active contributor to the Ethereum community."
+    },
+    "member3": {
+      "name": "Le Minh Cuong",
+      "role": "Smart Contract Engineer",
+      "bio": "Full-stack Web3 developer. Audited security for many major DeFi protocols."
+    },
+    "joinUs": {
+      "title": "Want to join us?",
+      "description": "StreamCredit is looking for talents passionate about ZK-Proofs and DeFi. Send us your CV today.",
+      "button": "Send Application Email"
+    }
+  },
+  
+  "landing": {
+    "hero": {
+      "title1": "Transparent Credit",
+      "title2": "Absolute Security",
+      "subtitle": "Next-generation RWA Lending solution combining",
+      "zkProofs": "Zero-Knowledge Proofs",
+      "and": "and",
+      "benfordLaw": "Benford's Law",
+      "description": "to authenticate business cash flow without revealing sensitive data.",
+      "launchApp": "Launch App",
+      "learnMore": "Learn More",
+      "openDemo": "Open Demo App",
+      "manageLoans": "Manage Loans",
+      "collateralNFT": "Collateral NFT",
+      "liveOnSepolia": "Live on Sepolia Testnet"
+    },
+    "features": {
+      "title": "Core Technology",
+      "subtitle": "We build a trust-layer for decentralized finance by combining cryptography and advanced statistical analysis.",
+      "zkPrivacy": {
+        "title": "Zero-Knowledge Privacy",
+        "description": "Create transaction proofs (ZK-Proof) right on your machine. Your confidential data never leaves your device."
+      },
+      "fraudDetection": {
+        "title": "Fraud Detection",
+        "description": "Use Benford's Law to detect patterns of fake wash trading or inflated fake invoices through anomaly checks."
+      },
+      "realWorldAssets": {
+        "title": "Real-World Assets",
+        "description": "Link off-chain business data with on-chain payment keys through Oracle."
+      },
+      "dynamicCredit": {
+        "title": "Dynamic Credit",
+        "description": "Credit limits are updated in real-time based on the strength of verifiable assets."
+      }
+    },
+    "workflow": {
+      "title": "Data Flow",
+      "subtitle": "How Does It Work?",
+      "description": "The system ensures complete security while enabling transparent tracking of every transaction and interest settlement.",
+      "tryNow": "Try Now",
+      "step1": {
+        "title": "Data Ingestion",
+        "description": "User uploads CSV file via API (Shopify/Stripe). The ledger fetches historical transactions via machine (Client-side)."
+      },
+      "step2": {
+        "title": "Anomaly Check",
+        "description": "Benford algorithm runs locally to evaluate fraud scores. If score exceeds ≥ threshold (Threshold), decision is sent."
+      },
+      "step3": {
+        "title": "ZK Proving",
+        "description": "Create Growth Proof locally: \"Verified that Sales ≥ $X and Benford Score passes K%\" without revealing internal numbers."
+      },
+      "step4": {
+        "title": "On-Chain Settlement",
+        "description": "Smart Contract validates proof. If valid, grant credit access (Credit Limit) updated and calculate interest rate (USDC)."
+      }
+    },
+    "roadmap": {
+      "title": "Development Roadmap",
+      "completed": "COMPLETED",
+      "inProgress": "IN PROGRESS",
+      "planned": "PLANNED",
+      "mvp": {
+        "title": "MVP Launch (Sepolia)",
+        "description": "Launch demo combining Benford check, ZK circuit on light mock USDC faucet"
+      },
+      "liquidityPools": {
+        "title": "Liquidity Pools & Staking",
+        "description": "Allow Lenders to supply liquidity (USDC) to earn lending interest (Yield) to pay Borrowers."
+      },
+      "oracles": {
+        "title": "Decentralized Oracles",
+        "description": "Replace Mock API connection with Oracle solution from Chainlink, Functions to validate data transparency."
+      }
+    },
+    "team": {
+      "title": "Our Team",
+      "subtitle": "Meet the innovators behind StreamCredit",
+      "backToHome": "Back to Home"
+    },
+    "cta": {
+      "ready": "Ready to Transform Your Lending Experience?",
+      "description": "Join thousands of users leveraging blockchain technology for transparent, secure lending",
+      "getStarted": "Get Started Now"
+    }
+  },
+  
+  "console": {
+    "title": "Interactive Demo Console",
+    "scenarios": {
+      "honest": {
+        "name": "Honest Merchant",
+        "desc": "Natural retail data following Benford's Law."
+      },
+      "fraud": {
+        "name": "Wash Trader",
+        "desc": "Signs of volume manipulation (round numbers, unusual repetition)."
+      }
+    },
+    "selectScenario": "Select a scenario to start",
+    "processing": "Processing...",
+    "step1": {
+      "title": "Step 1: Scenario Selection",
+      "description": "Choose a test scenario"
+    },
+    "step2": {
+      "title": "Step 2: Data Analysis",
+      "description": "Analyzing transaction patterns"
+    },
+    "step3": {
+      "title": "Step 3: ZK Proof Generation",
+      "description": "Creating Zero-Knowledge Proof"
+    },
+    "step4": {
+      "title": "Step 4: On-Chain Submission",
+      "description": "Submitting to smart contract"
+    },
+    "creditInfo": {
+      "limit": "Credit Limit",
+      "borrowed": "Borrowed",
+      "available": "Available"
+    }
+  }
+}

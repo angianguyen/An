@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useWeb3 } from '../context/Web3Context';
 import LoanManager from '../components/LoanManager';
 import CollateralManager from '../components/CollateralManager';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { 
   ShieldCheck, 
   Wallet, 
@@ -34,6 +36,7 @@ import {
 
 // --- SHARED COMPONENTS ---
 const Navbar = ({ onViewChange, currentView, web3 }) => {
+  const { t } = useTranslation();
   const { account, isConnected, isConnecting, connectWallet, disconnectWallet, switchAccount, isOnSepolia } = web3 || {};
   const [showWalletMenu, setShowWalletMenu] = useState(false);
   
@@ -58,19 +61,22 @@ const Navbar = ({ onViewChange, currentView, web3 }) => {
         <div className="hidden md:flex items-center gap-8">
           {currentView === 'landing' ? (
             <>
-              <a href="#features" className="text-sm font-medium text-slate-400 hover:text-cyan-400 transition">Tính năng</a>
-              <a href="#how-it-works" className="text-sm font-medium text-slate-400 hover:text-cyan-400 transition">Cách hoạt động</a>
-              <button onClick={() => onViewChange('team')} className="text-sm font-medium text-slate-400 hover:text-cyan-400 transition">Đội ngũ</button>
-              <a href="#roadmap" className="text-sm font-medium text-slate-400 hover:text-cyan-400 transition">Lộ trình</a>
+              <a href="#features" className="text-sm font-medium text-slate-400 hover:text-cyan-400 transition">{t('nav.features')}</a>
+              <a href="#how-it-works" className="text-sm font-medium text-slate-400 hover:text-cyan-400 transition">{t('nav.howItWorks')}</a>
+              <button onClick={() => onViewChange('team')} className="text-sm font-medium text-slate-400 hover:text-cyan-400 transition">{t('nav.team')}</button>
+              <a href="#roadmap" className="text-sm font-medium text-slate-400 hover:text-cyan-400 transition">{t('nav.roadmap')}</a>
             </>
           ) : (
             <button onClick={() => onViewChange('landing')} className="text-sm font-medium text-slate-400 hover:text-cyan-400 transition flex items-center gap-2">
-              <Home size={16} /> Quay về trang chủ
+              <Home size={16} /> {t('nav.backToHome')}
             </button>
           )}
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Language Switcher */}
+          <LanguageSwitcher variant="compact" />
+          
           {currentView === 'landing' && (
             <>
               <button 
@@ -162,19 +168,23 @@ const Navbar = ({ onViewChange, currentView, web3 }) => {
   );
 };
 
-const Footer = () => (
-  <footer className="border-t border-white/5 py-12 text-center bg-slate-950/50">
-    <div className="flex items-center justify-center gap-2 mb-4 text-cyan-400">
-      <ShieldCheck size={20} />
-      <span className="text-lg font-bold">StreamCredit Protocol</span>
-    </div>
-    <p className="text-slate-500 text-sm max-w-md mx-auto">
-      Giải pháp tài chính phi tập trung thế hệ mới. Bảo mật bởi Zero-Knowledge Proofs và vận hành trên Sepolia Testnet.
-      <br/><br/>
-      © 2024 StreamCredit Labs.
-    </p>
-  </footer>
-);
+const Footer = () => {
+  const { t } = useTranslation();
+  
+  return (
+    <footer className="border-t border-white/5 py-12 text-center bg-slate-950/50">
+      <div className="flex items-center justify-center gap-2 mb-4 text-cyan-400">
+        <ShieldCheck size={20} />
+        <span className="text-lg font-bold">StreamCredit Protocol</span>
+      </div>
+      <p className="text-slate-500 text-sm max-w-md mx-auto">
+        {t('footer.description')}
+        <br/><br/>
+        {t('footer.rights')}
+      </p>
+    </footer>
+  );
+};
 
 // --- PAGE 1: LANDING PAGE VIEW ---
 const FeatureCard = ({ icon: Icon, title, desc }) => (
@@ -187,7 +197,10 @@ const FeatureCard = ({ icon: Icon, title, desc }) => (
   </div>
 );
 
-const LandingView = ({ onNavigate }) => (
+const LandingView = ({ onNavigate }) => {
+  const { t } = useTranslation();
+  
+  return (
   <div className="fade-in">
     {/* HERO SECTION */}
     <header className="relative pt-20 pb-32 px-6 overflow-hidden">
@@ -202,16 +215,15 @@ const LandingView = ({ onNavigate }) => (
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
           </span>
-          Live on Sepolia Testnet
+          {t('landing.hero.liveOnSepolia')}
         </div>
         
         <h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight leading-tight">
-          Tín dụng <span className="text-gradient">Minh bạch</span> <br className="hidden md:block"/>
-          Bảo mật <span className="text-slate-100">Tuyệt đối</span>
+          {t('landing.hero.title1')} <span className="text-gradient">{t('landing.hero.title2')}</span>
         </h1>
         
         <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-          Giải pháp RWA Lending đầu tiên kết hợp <strong>Zero-Knowledge Proofs</strong> và <strong>Benford's Law</strong> để xác thực dòng tiền doanh nghiệp mà không lộ dữ liệu nhạy cảm.
+          {t('landing.hero.subtitle')} <strong>{t('landing.hero.zkProofs')}</strong> {t('landing.hero.and')} <strong>{t('landing.hero.benfordLaw')}</strong> {t('landing.hero.description')}
         </p>
 
         <div className="flex flex-wrap justify-center gap-4">
@@ -220,10 +232,10 @@ const LandingView = ({ onNavigate }) => (
             className="btn-action px-8 py-4 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center gap-2 text-lg"
           >
             <Terminal size={20} />
-            Mở Demo App
+            {t('landing.hero.openDemo')}
           </button>
           <a href="#how-it-works" className="px-8 py-4 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium transition-all flex items-center gap-2">
-            Tìm hiểu thêm <ChevronRight size={16} />
+            {t('landing.hero.learnMore')} <ChevronRight size={16} />
           </a>
         </div>
       </div>
@@ -233,30 +245,30 @@ const LandingView = ({ onNavigate }) => (
     <section id="features" className="py-24 relative bg-slate-950/30">
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-white mb-4">Công nghệ Cốt lõi</h2>
-          <p className="text-slate-400 max-w-2xl mx-auto">Chúng tôi xây dựng trust-layer cho tài chính phi tập trung bằng cách kết hợp mật mã học tiên tiến và phân tích thống kê.</p>
+          <h2 className="text-3xl font-bold text-white mb-4">{t('landing.features.title')}</h2>
+          <p className="text-slate-400 max-w-2xl mx-auto">{t('landing.features.subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <FeatureCard 
             icon={Lock}
-            title="Zero-Knowledge Privacy"
-            desc="Tạo bằng chứng xác thực doanh thu (ZK-Proof) ngay trên trình duyệt. Dữ liệu gốc không bao giờ rời khỏi máy của bạn."
+            title={t('landing.features.zkPrivacy.title')}
+            desc={t('landing.features.zkPrivacy.description')}
           />
           <FeatureCard 
             icon={ShieldCheck}
-            title="Fraud Detection"
-            desc="Sử dụng Benford's Law để phát hiện các mẫu dữ liệu wash trading hoặc làm giả báo cáo tài chính tự động."
+            title={t('landing.features.fraudDetection.title')}
+            desc={t('landing.features.fraudDetection.description')}
           />
           <FeatureCard 
             icon={Globe}
-            title="Real-World Assets"
-            desc="Kết nối dữ liệu doanh thu thực tế (Off-chain) với thanh khoản trên chuỗi (On-chain) thông qua Oracle."
+            title={t('landing.features.realWorldAssets.title')}
+            desc={t('landing.features.realWorldAssets.description')}
           />
           <FeatureCard 
             icon={Cpu}
-            title="Dynamic Credit"
-            desc="Hạn mức tín dụng được cập nhật theo thời gian thực dựa trên sức khỏe dòng tiền được chứng minh."
+            title={t('landing.features.dynamicCredit.title')}
+            desc={t('landing.features.dynamicCredit.description')}
           />
         </div>
       </div>
@@ -266,15 +278,15 @@ const LandingView = ({ onNavigate }) => (
     <section id="how-it-works" className="py-24 container mx-auto px-6 max-w-6xl">
       <div className="flex flex-col md:flex-row items-start gap-12">
         <div className="md:w-1/3 sticky top-24">
-          <h2 className="text-3xl font-bold text-white mb-6">Luồng Dữ Liệu <br/><span className="text-gradient">Hoạt Động Như Thế Nào?</span></h2>
+          <h2 className="text-3xl font-bold text-white mb-6">{t('landing.workflow.title')} <br/><span className="text-gradient">{t('landing.workflow.subtitle')}</span></h2>
           <p className="text-slate-400 mb-8 leading-relaxed">
-            Hệ thống đảm bảo tính toàn vẹn dữ liệu từ lúc nhập liệu cho đến khi hợp đồng thông minh xử lý khoản vay, hoàn toàn phi tập trung.
+            {t('landing.workflow.description')}
           </p>
           <button 
             onClick={() => onNavigate('console')}
             className="text-cyan-400 font-medium flex items-center gap-2 hover:gap-3 transition-all cursor-pointer"
           >
-            Trải nghiệm ngay <ArrowRight size={16} />
+            {t('landing.workflow.tryNow')} <ArrowRight size={16} />
           </button>
         </div>
 
@@ -284,8 +296,8 @@ const LandingView = ({ onNavigate }) => (
             <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-800 -z-10 md:hidden"></div>
             <div className="flex-shrink-0 w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400 font-bold text-lg z-10">1</div>
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">Data Ingestion <Database size={16} className="text-slate-500"/></h3>
-              <p className="text-slate-400 text-sm">Người dùng kết nối API bán hàng (Shopify/Stripe). Hệ thống fetch dữ liệu giao dịch thô về máy khách (Client-side).</p>
+              <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">{t('landing.workflow.step1.title')} <Database size={16} className="text-slate-500"/></h3>
+              <p className="text-slate-400 text-sm">{t('landing.workflow.step1.description')}</p>
             </div>
           </div>
 
@@ -294,8 +306,8 @@ const LandingView = ({ onNavigate }) => (
             <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-800 -z-10 md:hidden"></div>
             <div className="flex-shrink-0 w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-purple-400 font-bold text-lg z-10">2</div>
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">Anomaly Check <Activity size={16} className="text-slate-500"/></h3>
-              <p className="text-slate-400 text-sm">Thuật toán Benford chạy cục bộ để tính toán điểm số bất thường. Nếu điểm số &gt; ngưỡng (Threshold), quy trình dừng lại.</p>
+              <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">{t('landing.workflow.step2.title')} <Activity size={16} className="text-slate-500"/></h3>
+              <p className="text-slate-400 text-sm">{t('landing.workflow.step2.description')}</p>
             </div>
           </div>
 
@@ -304,8 +316,8 @@ const LandingView = ({ onNavigate }) => (
             <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-800 -z-10 md:hidden"></div>
             <div className="flex-shrink-0 w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400 font-bold text-lg z-10">3</div>
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">ZK Proving <Lock size={16} className="text-slate-500"/></h3>
-              <p className="text-slate-400 text-sm">Tạo bằng chứng Groth16 chứng minh: "Tôi có doanh thu &gt; $X và Benford Score hợp lệ" mà không tiết lộ số tiền cụ thể.</p>
+              <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">{t('landing.workflow.step3.title')} <Lock size={16} className="text-slate-500"/></h3>
+              <p className="text-slate-400 text-sm">{t('landing.workflow.step3.description')}</p>
             </div>
           </div>
 
@@ -313,8 +325,8 @@ const LandingView = ({ onNavigate }) => (
           <div className="glass-panel p-6 rounded-2xl flex gap-6">
             <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-cyan-600 to-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-cyan-500/20">4</div>
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">On-Chain Settlement <Layers size={16} className="text-slate-500"/></h3>
-              <p className="text-slate-400 text-sm">Smart Contract xác thực proof. Nếu đúng, hạn mức tín dụng (Credit Limit) được cập nhật và USDC được mở khóa.</p>
+              <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">{t('landing.workflow.step4.title')} <Layers size={16} className="text-slate-500"/></h3>
+              <p className="text-slate-400 text-sm">{t('landing.workflow.step4.description')}</p>
             </div>
           </div>
         </div>
@@ -324,7 +336,7 @@ const LandingView = ({ onNavigate }) => (
     {/* ROADMAP */}
     <section id="roadmap" className="py-24 bg-slate-900/20 border-y border-white/5">
       <div className="container mx-auto px-6 max-w-5xl">
-        <h2 className="text-3xl font-bold text-center text-white mb-16">Lộ Trình Phát Triển</h2>
+        <h2 className="text-3xl font-bold text-center text-white mb-16">{t('landing.roadmap.title')}</h2>
         
         <div className="relative">
           <div className="absolute left-1/2 transform -translate-x-1/2 w-px h-full bg-gradient-to-b from-cyan-500/0 via-cyan-500/50 to-cyan-500/0 hidden md:block"></div>
@@ -333,9 +345,9 @@ const LandingView = ({ onNavigate }) => (
             {/* Item 1 */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative">
               <div className="md:w-1/2 md:text-right order-2 md:order-1">
-                <div className="inline-block px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold mb-2">Q4 2024 - HOÀN THÀNH</div>
-                <h3 className="text-xl font-bold text-white mb-2">MVP Launch (Sepolia)</h3>
-                <p className="text-slate-400 text-sm">Ra mắt bản demo tích hợp Benford check, ZK circuit cơ bản và mock USDC faucet.</p>
+                <div className="inline-block px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold mb-2">Q4 2024 - {t('landing.roadmap.completed')}</div>
+                <h3 className="text-xl font-bold text-white mb-2">{t('landing.roadmap.mvp.title')}</h3>
+                <p className="text-slate-400 text-sm">{t('landing.roadmap.mvp.description')}</p>
               </div>
               <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.6)] hidden md:block"></div>
               <div className="md:w-1/2 order-1 md:order-2 opacity-50 hidden md:block"></div>
@@ -346,18 +358,18 @@ const LandingView = ({ onNavigate }) => (
               <div className="md:w-1/2 order-2 md:order-1 opacity-50 hidden md:block"></div>
               <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-purple-500 border-4 border-slate-900 shadow-[0_0_15px_rgba(168,85,247,0.4)] hidden md:block"></div>
               <div className="md:w-1/2 order-1 md:order-2">
-                <div className="inline-block px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold mb-2">Q1 2025 - ĐANG PHÁT TRIỂN</div>
-                <h3 className="text-xl font-bold text-white mb-2">Liquidity Pools & Staking</h3>
-                <p className="text-slate-400 text-sm">Cho phép Lenders cung cấp thanh khoản (USDC) để kiếm lợi suất (Yield) từ lãi vay của Borrowers.</p>
+                <div className="inline-block px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold mb-2">Q1 2025 - {t('landing.roadmap.inProgress')}</div>
+                <h3 className="text-xl font-bold text-white mb-2">{t('landing.roadmap.liquidityPools.title')}</h3>
+                <p className="text-slate-400 text-sm">{t('landing.roadmap.liquidityPools.description')}</p>
               </div>
             </div>
 
             {/* Item 3 */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative">
               <div className="md:w-1/2 md:text-right order-2 md:order-1">
-                <div className="inline-block px-3 py-1 rounded-full bg-slate-700/30 border border-slate-600 text-slate-400 text-xs font-bold mb-2">Q2 2025 - KẾ HOẠCH</div>
-                <h3 className="text-xl font-bold text-slate-200 mb-2">Decentralized Oracles</h3>
-                <p className="text-slate-500 text-sm">Thay thế Mock API bằng mạng lưới Oracle phi tập trung (Chainlink Functions) để xác thực nguồn dữ liệu.</p>
+                <div className="inline-block px-3 py-1 rounded-full bg-slate-700/30 border border-slate-600 text-slate-400 text-xs font-bold mb-2">Q2 2025 - {t('landing.roadmap.planned')}</div>
+                <h3 className="text-xl font-bold text-slate-200 mb-2">{t('landing.roadmap.oracles.title')}</h3>
+                <p className="text-slate-500 text-sm">{t('landing.roadmap.oracles.description')}</p>
               </div>
               <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-slate-700 border-4 border-slate-900 hidden md:block"></div>
               <div className="md:w-1/2 order-1 md:order-2 opacity-50 hidden md:block"></div>
@@ -367,30 +379,33 @@ const LandingView = ({ onNavigate }) => (
       </div>
     </section>
   </div>
-);
+  );
+};
 
 // --- PAGE 2: TEAM VIEW ---
 const TeamView = () => {
+  const { t } = useTranslation();
+  
   const TEAM_MEMBERS = [
     {
-      name: "Nguyễn Văn An",
-      role: "Co-Founder & CEO",
-      bio: "10 năm kinh nghiệm trong Fintech và Ngân hàng số. Cựu Product Manager tại TechBank.",
+      name: t('team.member1.name'),
+      role: t('team.member1.role'),
+      bio: t('team.member1.bio'),
       initials: "AN",
       color: "from-cyan-500 to-blue-500",
       isLeader: true // Đánh dấu Leader
     },
     {
-      name: "Trần Thị Bình",
-      role: "CTO & Lead ZK Researcher",
-      bio: "Chuyên gia về Cryptography và ZK-Rollups. Đóng góp tích cực cho cộng đồng Ethereum.",
+      name: t('team.member2.name'),
+      role: t('team.member2.role'),
+      bio: t('team.member2.bio'),
       initials: "TB",
       color: "from-purple-500 to-pink-500"
     },
     {
-      name: "Lê Minh Cường",
-      role: "Smart Contract Engineer",
-      bio: "Full-stack Web3 developer. Đã audit an ninh cho nhiều giao thức DeFi lớn.",
+      name: t('team.member3.name'),
+      role: t('team.member3.role'),
+      bio: t('team.member3.bio'),
       initials: "MC",
       color: "from-emerald-400 to-cyan-500"
     }
@@ -400,10 +415,10 @@ const TeamView = () => {
     <div className="container mx-auto px-6 max-w-6xl py-20 fade-in min-h-screen">
       <div className="text-center mb-16">
         <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-          Những người <span className="text-gradient">kiến tạo</span>
+          {t('team.title')}
         </h2>
         <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-          Chúng tôi là tập hợp của những kỹ sư, nhà nghiên cứu và chuyên gia tài chính với niềm tin mãnh liệt vào tương lai của DeFi.
+          {t('team.subtitle')}
         </p>
       </div>
 
@@ -418,7 +433,7 @@ const TeamView = () => {
           >
             {member.isLeader && (
               <div className="absolute top-3 right-3 bg-cyan-500/20 text-cyan-400 text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-cyan-500/50">
-                <Crown size={12} fill="currentColor" /> LEADER
+                <Crown size={12} fill="currentColor" /> {t('team.leader')}
               </div>
             )}
 
@@ -453,13 +468,13 @@ const TeamView = () => {
       {/* Advisory / Join Us */}
       <div className="glass-panel p-10 rounded-3xl text-center relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50"></div>
-        <h3 className="text-2xl font-bold text-white mb-4">Bạn muốn tham gia cùng chúng tôi?</h3>
+        <h3 className="text-2xl font-bold text-white mb-4">{t('team.joinUs.title')}</h3>
         <p className="text-slate-400 mb-8 max-w-xl mx-auto">
-          StreamCredit đang tìm kiếm những tài năng đam mê ZK-Proofs và DeFi. Hãy gửi CV của bạn ngay hôm nay.
+          {t('team.joinUs.description')}
         </p>
         <button className="px-8 py-3 rounded-xl bg-white text-slate-900 font-bold hover:bg-cyan-50 hover:text-cyan-900 transition flex items-center gap-2 mx-auto">
           <Mail size={18} />
-          Gửi Email Ứng Tuyển
+          {t('team.joinUs.button')}
         </button>
       </div>
     </div>
@@ -470,6 +485,7 @@ const TeamView = () => {
 const API_BASE = process.env.NEXT_PUBLIC_MOCK_API_URL || 'http://localhost:3001';
 
 const ConsoleView = ({ onNavigate, web3 }) => {
+  const { t } = useTranslation();
   const { 
     account, 
     isConnected, 
@@ -496,8 +512,8 @@ const ConsoleView = ({ onNavigate, web3 }) => {
   const [lastTxHash, setLastTxHash] = useState(null);
 
   const SCENARIOS = {
-    HONEST: { name: 'Honest Merchant', desc: 'Dữ liệu bán lẻ tự nhiên tuân theo quy luật Benford.' },
-    FRAUD: { name: 'Wash Trader', desc: 'Dấu hiệu thao túng volume (số tròn, lặp lại bất thường).' }
+    HONEST: { name: t('console.scenarios.honest.name'), desc: t('console.scenarios.honest.desc') },
+    FRAUD: { name: t('console.scenarios.fraud.name'), desc: t('console.scenarios.fraud.desc') }
   };
 
   // Load on-chain account info when connected
@@ -1198,13 +1214,13 @@ const ConsoleView = ({ onNavigate, web3 }) => {
               {isLoading && (
                 <div className="text-cyan-400 animate-pulse flex items-center gap-2 py-1">
                   <RefreshCw size={12} className="animate-spin" />
-                  Processing...
+                  {t('console.processing')}
                 </div>
               )}
               {logs.length === 0 && !isLoading && (
                 <div className="text-slate-600 text-center py-8">
                   <Terminal size={24} className="mx-auto mb-2 opacity-50" />
-                  <p>Chọn một scenario để bắt đầu</p>
+                  <p>{t('console.selectScenario')}</p>
                 </div>
               )}
             </div>
